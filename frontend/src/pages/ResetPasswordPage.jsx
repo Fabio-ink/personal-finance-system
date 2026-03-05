@@ -14,10 +14,10 @@ const ResetPasswordPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
-        setError("As senhas não coincidem.");
-        return;
+      setError("As senhas não coincidem.");
+      return;
     }
 
     setLoading(true);
@@ -39,10 +39,10 @@ const ResetPasswordPage = () => {
   return (
     <div className="min-h-screen flex justify-center items-center">
       <div className="absolute inset-0 bg-brand-dark opacity-80"></div>
-      
+
       <div className="relative z-10 w-full max-w-md p-8 space-y-6">
         <PageTitle className="text-center text-3xl text-white">Redefinir Senha</PageTitle>
-        
+
         {message && (
           <div className="bg-green-500/10 border border-green-500/50 text-green-500 p-3 rounded-md text-sm text-center">
             {message}
@@ -82,13 +82,16 @@ const ResetPasswordPage = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-          
+
           <Button variant="primary" type="submit" className="w-full py-3!" disabled={loading}>
             {loading ? 'Alterar Senha' : 'Confirmar'}
           </Button>
         </form>
 
-        <div className="text-center">
+        <div className="text-center flex flex-col space-y-2">
+          <Link to="/forgot-password" className="text-sm text-gray-400 hover:text-white transition-colors">
+            Não recebeu o código? <span className="text-brand-primary hover:underline font-medium">Reenviar</span>
+          </Link>
           <Link to="/login" className="text-sm text-brand-primary hover:underline">
             Voltar para Login
           </Link>
