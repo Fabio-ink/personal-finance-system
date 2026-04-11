@@ -11,28 +11,35 @@ A complete system for personal finance management, enabling control of transacti
 - **Spring Data JPA** (Hibernate)
 - **Spring Security** (JWT Authentication)
 - **PostgreSQL** (Database)
+- **Apache POI** (Excel Export/Import)
 - **Lombok**
 - **Docker**
 
+
 ### Frontend
 
-- **React.js** (Vite)
-- **TailwindCSS** (Styling)
+- **React.js 19** (Vite)
+- **TailwindCSS 4** (Styling)
+- **i18next & react-i18next** (Multi-language Support)
 - **Recharts** (Charts)
 - **Axios** (API Integration)
+- **Lucide React** (Icons)
+
 
 ## Features
 
 - **Transaction Management**:
-  - Incomes (Entrada)
-  - Expenses (Saída)
+  - Incomes
+  - Expenses
   - Transfers between accounts
   - Credit Card (with automatic installment handling)
 - **Accounts & Balance Control**: Real-time balance tracking.
 - **Customizable Categories**: Organize expenses by categories.
 - **Monthly Planning**: Define spending limits per category/month with visual tracking.
 - **Dashboard**: Overview with income vs. expense charts.
+- **Multi-language Support**: Full support for **English** and **Portuguese** (BR).
 - **Authentication**: Secure system with Login and Registration via JWT.
+
 
 ## How to Run
 
@@ -49,8 +56,8 @@ The project is configured to run entirely via Docker.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/Fabio-ink/sistema-financeiro-pessoal.git
-cd sistema-financeiro-pessoal
+git clone https://github.com/Fabio-ink/personal-finance-system.git
+cd personal-finance-system
 ```
 
 2. Start the containers (Frontend + Database):
