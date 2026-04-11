@@ -35,3 +35,8 @@ build/
 
 # Ignorar arquivos de configuração de ambiente local
 application-dev.properties
+
+# Agent Files
+GEMINI.md
+.agents/
+migration_v2_english_enforcement.sql
