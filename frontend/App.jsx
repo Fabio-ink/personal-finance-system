@@ -3,6 +3,7 @@ import { Routes, Route, NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, PieChart, List } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './src/contexts/AuthContext.jsx';
+import { Analytics } from '@vercel/analytics/react';
 
 import DashboardPage from './src/pages/DashboardPage.jsx';
 import AccountsPage from './src/pages/AccountsPage.jsx';
@@ -102,25 +103,28 @@ const AppLayout = () => {
 
 function App() {
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/logout-success" element={<LogoutSuccessPage />} />
+    <>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/logout-success" element={<LogoutSuccessPage />} />
 
-      {/* Protected routes with layout */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/accounts" element={<AccountsPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/profile" element={<UserProfilePage />} />
+        {/* Protected routes with layout */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/accounts" element={<AccountsPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/profile" element={<UserProfilePage />} />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
+      <Analytics />
+    </>
   );
 }
 
