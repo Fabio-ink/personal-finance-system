@@ -50,15 +50,15 @@ const TransactionChart = ({ transactions }) => {
                  localDate = new Date(t.creationDate);
             }
             
-            const date = localDate.toLocaleDateString('pt-BR');
+            const date = localDate.toLocaleDateString('en-US');
             if (!acc[date]) {
                 acc[date] = { date, income: 0, expense: 0, transfer: 0, rawDate: localDate };
             }
-            if (t.transactionType === 'ENTRADA') {
+            if (t.transactionType === 'INCOME') {
                 acc[date].income += t.amount;
-            } else if (t.transactionType === 'SAIDA' || t.transactionType === 'CARTAO') {
+            } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
                 acc[date].expense += t.amount;
-            } else if (t.transactionType === 'MOVIMENTACAO') {
+            } else if (t.transactionType === 'TRANSFER') {
                 acc[date].transfer += t.amount;
             }
             return acc;
@@ -96,7 +96,7 @@ const TransactionChart = ({ transactions }) => {
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                             <span className="text-gray-400 capitalize">{entry.name}:</span>
                             <span className="text-white font-mono">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entry.value)}
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(entry.value)}
                             </span>
                         </div>
                     ))}
@@ -119,7 +119,7 @@ const TransactionChart = ({ transactions }) => {
                                 : 'bg-brand-card border border-brand-border/50 text-gray-400 hover:text-white hover:border-brand-primary/50'
                         }`}
                     >
-                        {range === '1S' ? '1 Sem' : range === '1M' ? '1 Mês' : range === '1A' ? '1 Ano' : 'Tudo'}
+                        {range === '1S' ? '1 Week' : range === '1M' ? '1 Month' : range === '1A' ? '1 Year' : 'Max'}
                     </button>
                 ))}
             </div>
@@ -149,9 +149,9 @@ const TransactionChart = ({ transactions }) => {
                             formatter={(value) => <span className="text-gray-400 text-sm ml-1">{value}</span>}
                         />
                         
-                        {/* Entradas - Green/Teal */}
+                        {/* Income - Green/Teal */}
                         <Line 
-                            name="Entradas"
+                            name="Income"
                             type="linear" 
                             dataKey="income" 
                             stroke="#10B981" 
@@ -160,9 +160,9 @@ const TransactionChart = ({ transactions }) => {
                             activeDot={{ r: 6, fill: '#10B981', stroke: '#fff' }}
                         />
 
-                        {/* Movimentações (Transferências) - Purple */}
+                        {/* Transfers - Purple */}
                         <Line 
-                            name="Movimentações"
+                            name="Transfers"
                             type="linear" 
                             dataKey="transfer" 
                             stroke="#8B5CF6" 
@@ -171,9 +171,9 @@ const TransactionChart = ({ transactions }) => {
                             activeDot={{ r: 6, fill: '#8B5CF6', stroke: '#fff' }}
                         />
 
-                        {/* Saídas - Red */}
+                        {/* Expenses - Red */}
                         <Line 
-                            name="Saídas"
+                            name="Expenses"
                             type="linear" 
                             dataKey="expense" 
                             stroke="#EF4444" 

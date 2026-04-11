@@ -1,16 +1,14 @@
 import { Edit2, Trash2 } from 'lucide-react';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate, formatCurrency } from '../utils/dateUtils';
 import IconButton from './ui/IconButton';
-
-const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
-};
+import { useTranslation } from 'react-i18next';
 
 // formatDate is imported from utils
 
 function TransactionList({ transactions, onEdit, onDelete }) {
+    const { t } = useTranslation();
     if (!transactions || transactions.length === 0) {
-        return <p className="text-text-secondary text-center py-8">Nenhuma transação recente.</p>;
+        return <p className="text-text-secondary text-center py-8">{t('dashboard.noTransactions')}</p>;
     }
 
     // Take only the last 5 transactions for the dashboard
@@ -25,22 +23,22 @@ function TransactionList({ transactions, onEdit, onDelete }) {
                 >
                     <div className="flex items-center gap-4">
                         <div className={`w-2 h-10 rounded-full ${
-                            transaction.transactionType === 'ENTRADA' ? 'bg-brand-success' : 
-                            transaction.transactionType === 'SAIDA' ? 'bg-brand-danger' : 'bg-brand-info'
+                            transaction.transactionType === 'INCOME' ? 'bg-brand-success' : 
+                            transaction.transactionType === 'EXPENSE' ? 'bg-brand-danger' : 'bg-brand-info'
                         }`}></div>
                         
                         <div>
                             <p className="font-semibold text-white">{transaction.name}</p>
-                            <p className="text-xs text-text-secondary">{formatDate(transaction.creationDate)} • {transaction.category?.name || 'Sem categoria'}</p>
+                            <p className="text-xs text-text-secondary">{formatDate(transaction.creationDate)} • {transaction.category?.name || t('transactions.form.selectCategory')}</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-6">
                         <span className={`font-bold font-mono ${
-                            transaction.transactionType === 'ENTRADA' ? 'text-brand-success' : 
-                            transaction.transactionType === 'SAIDA' ? 'text-brand-danger' : 'text-brand-info'
+                            transaction.transactionType === 'INCOME' ? 'text-brand-success' : 
+                            transaction.transactionType === 'EXPENSE' ? 'text-brand-danger' : 'text-brand-info'
                         }`}>
-                            {transaction.transactionType === 'SAIDA' ? '- ' : '+ '}
+                            {transaction.transactionType === 'EXPENSE' ? '- ' : '+ '}
                             {formatCurrency(transaction.amount)}
                         </span>
                         
@@ -48,14 +46,14 @@ function TransactionList({ transactions, onEdit, onDelete }) {
                             <IconButton 
                                 onClick={() => onEdit(transaction)}
                                 color="primary"
-                                title="Editar"
+                                title={t('common.edit')}
                             >
                                 <Edit2 size={16} />
                             </IconButton>
                             <IconButton 
                                 onClick={() => onDelete && onDelete(transaction)}
                                 color="danger"
-                                title="Excluir"
+                                title={t('common.delete')}
                             >
                                 <Trash2 size={16} />
                             </IconButton>

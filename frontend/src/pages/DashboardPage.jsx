@@ -13,14 +13,17 @@ import Modal from '../components/ui/Modal';
 import PageTitle from '../components/ui/PageTitle';
 import Input from '../components/ui/Input';
 import DashboardAction from '../components/DashboardAction';
+import { formatCurrency } from '../utils/dateUtils';
 import { PlusCircle } from 'lucide-react'; 
+import { useTranslation } from 'react-i18next';
+import { ptBR, enUS } from 'date-fns/locale';
 import api from '../services/api';
 import AccountForm from '../components/AccountForm';
 import AccountsListModal from '../components/AccountsListModal';
 import { format, subMonths, addMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 function DashboardPage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -42,10 +45,12 @@ function DashboardPage() {
   const previousMonth2 = subMonths(currentMonth, 2);
   const nextMonth = addMonths(currentMonth, 1);
 
-  const previousMonthName = format(previousMonth, 'MMMM', { locale: ptBR });
-  const previousMonth2Name = format(previousMonth2, 'MMMM', { locale: ptBR });
-  const currentMonthName = format(currentMonth, 'MMMM', { locale: ptBR });
-  const nextMonthName = format(nextMonth, 'MMMM', { locale: ptBR });
+  const dateLocale = i18n.language.startsWith('pt') ? ptBR : enUS;
+
+  const previousMonthName = format(previousMonth, 'MMMM', { locale: dateLocale });
+  const previousMonth2Name = format(previousMonth2, 'MMMM', { locale: dateLocale });
+  const currentMonthName = format(currentMonth, 'MMMM', { locale: dateLocale });
+  const nextMonthName = format(nextMonth, 'MMMM', { locale: dateLocale });
 
   // Capitalize first letter
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -68,7 +73,7 @@ function DashboardPage() {
       setError(null);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      setError("Failed to fetch dashboard data.");
+      setError(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -78,7 +83,7 @@ function DashboardPage() {
     fetchAllData();
   }, [fetchAllData]);
 
-  const handleOpenModal = useCallback((type = 'SAIDA') => {
+  const handleOpenModal = useCallback((type = 'EXPENSE') => {
     setTransactionToEdit({ transactionType: type });
     setTransactionModalOpen(true);
   }, []);
@@ -134,7 +139,7 @@ function DashboardPage() {
         fetchAllData();
     } catch (error) {
         console.error("Error deleting account", error);
-        alert("Erro ao excluir conta. Verifique se existem transações vinculadas.");
+        alert(t('dashboard.deleteAccountConfirm'));
     }
   }, [handleCloseAccountForm, fetchAllData]);
 
@@ -167,6 +172,9 @@ function DashboardPage() {
   if (error) {
     return <ErrorMessage message={error} />;
   }
+
+  const currencyLocale = i18n.language.startsWith('pt') ? 'pt-BR' : 'en-US';
+  const currencyCode = i18n.language.startsWith('pt') ? 'BRL' : 'USD';
 
   return (
     <>
@@ -202,7 +210,7 @@ function DashboardPage() {
             />
           </div>
         ) : (
-          <p className="text-gray-400">Loading monthly summaries...</p>
+          <p className="text-gray-400">{t('dashboard.loadingSummary')}</p>
         )}
         
         {/* Row 2: Chart & Actions/Accounts */}
@@ -210,13 +218,13 @@ function DashboardPage() {
           {/* Chart (2/3) */}
           <div className="lg:col-span-2 min-h-[400px]">
             <Card className="p-6 h-full flex flex-col bg-brand-card rounded-2xl border border-brand-border/30 shadow-lg">
-              <PageTitle level={2} className="text-xl font-bold mb-6 text-white">Gráficos</PageTitle>
+              <PageTitle level={2} className="text-xl font-bold mb-6 text-white">{t('dashboard.charts')}</PageTitle>
               <div className="flex-1 min-h-0">
                 {allTransactions.length > 0 ? (
                   <TransactionChart transactions={allTransactions} />
                 ) : (
                   <div className="h-full flex items-center justify-center text-text-secondary">
-                    Sem dados para o gráfico.
+                    {t('dashboard.noChartData')}
                   </div>
                 )}
               </div>
@@ -229,20 +237,20 @@ function DashboardPage() {
               <div className="flex flex-col gap-4">
                  <DashboardAction 
                     variant="success" 
-                    label="Entradas" 
-                    onClick={() => handleOpenModal('ENTRADA')} 
+                    label={t('common.income')} 
+                    onClick={() => handleOpenModal('INCOME')} 
                  />
 
                  <DashboardAction 
                     variant="primary" 
-                    label="Movimentações" 
-                    onClick={() => handleOpenModal('MOVIMENTACAO')} 
+                    label={t('common.transfers')} 
+                    onClick={() => handleOpenModal('TRANSFER')} 
                  />
 
                  <DashboardAction 
                     variant="danger" 
-                    label="Saídas" 
-                    onClick={() => handleOpenModal('SAIDA')} 
+                    label={t('common.expenses')} 
+                    onClick={() => handleOpenModal('EXPENSE')} 
                  />
               </div>
 
@@ -254,12 +262,12 @@ function DashboardPage() {
                           className="text-xl font-bold text-white cursor-pointer hover:text-brand-primary transition-colors"
                           onClick={handleOpenAccountsList}
                         >
-                          Contas
+                          {t('dashboard.accounts')}
                         </PageTitle>
                         <button 
                         onClick={() => handleOpenAccountForm(null)} 
                         className="text-brand-primary hover:text-brand-primary-hover transition-colors cursor-pointer"
-                        title="Nova Conta"
+                        title={t('dashboard.newAccount')}
                         >
                         <PlusCircle size={24} />
                         </button>
@@ -276,10 +284,10 @@ function DashboardPage() {
                                 <p className="font-medium text-gray-200 group-hover:text-white transition-colors">{account.name}</p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <p className="text-gray-300 font-mono font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(account.currentBalance)}</p>
+                                <p className="text-gray-300 font-mono font-bold">{formatCurrency(account.currentBalance)}</p>
                             </div>
                         </div>
-                        )) : <p className="text-gray-400 text-center py-4">Nenhuma conta encontrada.</p>}
+                        )) : <p className="text-gray-400 text-center py-4">{t('dashboard.noAccounts')}</p>}
                     </div>
                 </Card>
           </div>
@@ -289,24 +297,24 @@ function DashboardPage() {
         <div className="grid grid-cols-1">
             <Card className="p-6 bg-brand-card rounded-2xl border border-brand-border/30 shadow-lg min-h-[300px]">
                 <div className="flex justify-between items-center mb-6">
-                    <PageTitle level={2} className="text-xl font-bold text-white">Transações Recentes</PageTitle>
+                    <PageTitle level={2} className="text-xl font-bold text-white">{t('dashboard.recentTransactions')}</PageTitle>
                     <button 
                         onClick={() => navigate('/transactions')}
                         className="text-sm text-brand-primary hover:text-brand-primary-hover transition-colors cursor-pointer"
                     >
-                        Ver todas
+                        {t('common.viewAll')}
                     </button>
                 </div>
                 <TransactionList 
                     transactions={allTransactions.slice(0, 5)} 
-                    onEdit={(t) => {
-                        setTransactionToEdit(t);
+                    onEdit={(transaction) => {
+                        setTransactionToEdit(transaction);
                         setTransactionModalOpen(true);
                     }}
-                    onDelete={async (t) => {
-                        if (window.confirm('Tem certeza que deseja excluir esta transação?')) {
+                    onDelete={async (transaction) => {
+                        if (window.confirm(t('dashboard.deleteTransactionConfirm'))) {
                             try {
-                                await api.delete(`/transactions/${t.id}`);
+                                await api.delete(`/transactions/${transaction.id}`);
                                 fetchAllData();
                             } catch (error) {
                                 console.error("Error deleting transaction", error);
@@ -333,7 +341,7 @@ function DashboardPage() {
       {/* Modal de Formulário de Conta (Criar/Editar) */}
       <Modal isOpen={isAccountFormModalOpen} onCancel={handleCloseAccountForm}>
         <PageTitle level={2} className="text-xl font-semibold mb-4 text-white">
-          {accountToEdit ? 'Editar Conta' : 'Nova Conta'}
+          {accountToEdit ? t('dashboard.editAccount') : t('dashboard.newAccount')}
         </PageTitle>
         <AccountForm 
           account={accountToEdit} 
@@ -343,9 +351,9 @@ function DashboardPage() {
         />
       </Modal>
 
-      {/* Modal de Lista de Contas */}
+      {/* All Accounts Modal */}
       <Modal isOpen={isAccountsListModalOpen} onCancel={handleCloseAccountsList}>
-        <PageTitle level={2} className="text-xl font-semibold mb-4 text-white">Todas as Contas</PageTitle>
+        <PageTitle level={2} className="text-xl font-semibold mb-4 text-white">{t('dashboard.allAccounts')}</PageTitle>
         <AccountsListModal 
           accounts={accounts} 
           onEdit={handleOpenAccountForm} 

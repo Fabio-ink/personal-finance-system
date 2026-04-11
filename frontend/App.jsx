@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, PieChart, List } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from './src/contexts/AuthContext.jsx';
 
 import DashboardPage from './src/pages/DashboardPage.jsx';
@@ -17,10 +18,11 @@ import UserMenu from './src/components/UserMenu.jsx';
 import UserProfilePage from './src/pages/UserProfilePage.jsx';
 
 const AppLayout = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const getDisplayName = (name) => {
-    if (!name) return 'Usuário';
+    if (!name) return 'User';
     const parts = name.split(' ').filter(part => part.trim() !== '');
     if (parts.length > 1) {
         return `${parts[0]} ${parts[parts.length - 1]}`;
@@ -59,13 +61,13 @@ const AppLayout = () => {
         
         <div className="flex flex-col gap-2 pt-4">
             <NavLink to="/" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
-            <LayoutDashboard size={22} /> Dashboard
+            <LayoutDashboard size={22} /> {t('common.dashboard')}
             </NavLink>
             <NavLink to="/transactions" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
-            <List size={22} /> Transações
+            <List size={22} /> {t('common.transactions')}
             </NavLink>
             <NavLink to="/categories" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
-            <PieChart size={22} /> Categorias
+            <PieChart size={22} /> {t('common.categories')}
             </NavLink>
         </div>
 

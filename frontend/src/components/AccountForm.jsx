@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Input from './ui/Input';
 import Button from './ui/Button';
 import { createAccount, updateAccount } from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 function AccountForm({ account, onSave, onCancel, onDelete }) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [initialBalance, setInitialBalance] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,7 +43,7 @@ function AccountForm({ account, onSave, onCancel, onDelete }) {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Tem certeza que deseja excluir esta conta?')) {
+    if (window.confirm(t('accounts.deleteConfirm'))) {
         setLoading(true);
         try {
             await onDelete(account.id);
@@ -56,15 +58,15 @@ function AccountForm({ account, onSave, onCancel, onDelete }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input 
-        label="Nome da Conta" 
+        label={t('accounts.name')} 
         type="text" 
-        placeholder="Ex: Conta Corrente" 
+        placeholder={t('accounts.placeholderName')} 
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
       />
       <Input 
-        label="Saldo Inicial" 
+        label={t('accounts.initialBalance')} 
         type="number" 
         step="0.01" 
         placeholder="0.00" 
@@ -80,13 +82,13 @@ function AccountForm({ account, onSave, onCancel, onDelete }) {
                 onClick={handleDelete} 
                 disabled={loading}
             >
-                Excluir
+                {t('common.delete')}
             </Button>
         )}
         <div className={`flex gap-2 ${!account ? 'w-full justify-end' : ''}`}>
-            <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>Cancelar</Button>
+            <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>{t('common.cancel')}</Button>
             <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? 'Salvando...' : (account ? 'Atualizar Conta' : 'Salvar Conta')}
+            {loading ? t('common.saving') : (account ? t('accounts.updateAccount') : t('accounts.saveAccount'))}
             </Button>
         </div>
       </div>

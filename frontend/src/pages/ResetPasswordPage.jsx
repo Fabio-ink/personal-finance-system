@@ -16,7 +16,7 @@ const ResetPasswordPage = () => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      setError("As senhas não coincidem.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -26,10 +26,10 @@ const ResetPasswordPage = () => {
 
     try {
       await api.post('/auth/reset-password', { token, newPassword });
-      setMessage('Senha alterada com sucesso! Redirecionando...');
+      setMessage('Password changed successfully! Redirecting...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError('Código inválido ou expirado.');
+      setError('Invalid or expired code.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -41,7 +41,7 @@ const ResetPasswordPage = () => {
       <div className="absolute inset-0 bg-brand-dark opacity-80"></div>
 
       <div className="relative z-10 w-full max-w-md p-8 space-y-6">
-        <PageTitle className="text-center text-3xl text-white">Redefinir Senha</PageTitle>
+        <PageTitle className="text-center text-3xl text-white">Reset Password</PageTitle>
 
         {message && (
           <div className="bg-green-500/10 border border-green-500/50 text-green-500 p-3 rounded-md text-sm text-center">
@@ -58,8 +58,8 @@ const ResetPasswordPage = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             type="text"
-            placeholder="Código de Recuperação"
-            label="Código"
+            placeholder="Recovery Code"
+            label="Code"
             value={token}
             onChange={(e) => setToken(e.target.value)}
             required
@@ -67,8 +67,8 @@ const ResetPasswordPage = () => {
 
           <Input
             type="password"
-            placeholder="Nova Senha"
-            label="Nova Senha"
+            placeholder="New Password"
+            label="New Password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
@@ -76,24 +76,24 @@ const ResetPasswordPage = () => {
 
           <Input
             type="password"
-            placeholder="Confirmar Nova Senha"
-            label="Confirmar Senha"
+            placeholder="Confirm New Password"
+            label="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
 
           <Button variant="primary" type="submit" className="w-full py-3!" disabled={loading}>
-            {loading ? 'Alterar Senha' : 'Confirmar'}
+            {loading ? 'Changing Password...' : 'Confirm'}
           </Button>
         </form>
 
         <div className="text-center flex flex-col space-y-2">
           <Link to="/forgot-password" className="text-sm text-gray-400 hover:text-white transition-colors">
-            Não recebeu o código? <span className="text-brand-primary hover:underline font-medium">Reenviar</span>
+            Didn't receive the code? <span className="text-brand-primary hover:underline font-medium">Resend</span>
           </Link>
           <Link to="/login" className="text-sm text-brand-primary hover:underline">
-            Voltar para Login
+            Back to Login
           </Link>
         </div>
       </div>

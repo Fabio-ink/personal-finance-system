@@ -1,18 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
+import { useTranslation } from 'react-i18next';
 
 function Select({ label, value, onChange, children, className = '', name }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
   // Parse children to get options
   const options = React.Children.toArray(children).map(child => {
-    if (child.type === 'option') {
+    if (child && child.type === 'option') {
       return {
-        value: child.props.value,
-        label: child.props.children,
-        key: child.key || child.props.value
+        value: child.props?.value,
+        label: child.props?.children,
+        key: child.key || child.props?.value
       };
     }
     return null;
@@ -62,7 +64,7 @@ function Select({ label, value, onChange, children, className = '', name }) {
             isOpen && "border-brand-primary ring-1 ring-brand-primary"
         )}>
             <span className={twMerge("text-sm", !selectedOption && "text-text-muted")}>
-                {selectedOption ? selectedOption.label : 'Selecione...'}
+                {selectedOption ? selectedOption.label : t('common.select')}
             </span>
             <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
@@ -90,7 +92,7 @@ function Select({ label, value, onChange, children, className = '', name }) {
             ))}
             {options.length === 0 && (
                 <div className="px-3 py-2 text-sm text-gray-500 text-center">
-                    Nenhuma opção disponível
+                    {t('common.noOptions')}
                 </div>
             )}
           </div>

@@ -17,12 +17,12 @@ const LogoutSuccessPage = () => {
             <CheckCircle size={40} className="text-green-500" />
         </div>
         
-        <h1 className="text-3xl font-bold text-white mb-2">Você saiu da sua conta</h1>
-        <p className="text-gray-400 text-lg mb-8">Até logo!</p>
+        <h1 className="text-3xl font-bold text-white mb-2">You've logged out</h1>
+        <p className="text-gray-400 text-lg mb-8">See you soon!</p>
         
         <Link to="/login" className="w-full">
           <Button variant="primary" className="w-full py-3! text-lg font-medium shadow-lg shadow-brand-primary/20">
-            Entrar novamente
+            Login again
           </Button>
         </Link>
       </div>

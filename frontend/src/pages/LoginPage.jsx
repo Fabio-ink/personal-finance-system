@@ -15,7 +15,7 @@ const LoginPage = () => {
   const handleNextStep = (e) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError('Por favor, informe um email válido.');
+      setError('Please enter a valid email.');
       return;
     }
     setError('');
@@ -30,13 +30,13 @@ const LoginPage = () => {
       navigate('/');
     } catch (error) {
       console.error('Failed to login', error);
-      setError('Email ou senha incorretos. Tente novamente.');
+      setError('Incorrect email or password. Try again.');
     }
   };
 
   return (
     <div className="min-h-screen flex justify-center items-center">
-      <div className="absolute inset-0 bg-brand-dark opacity-80"></div> {/* Overlay escuro */}
+      <div className="absolute inset-0 bg-brand-dark opacity-80"></div> {/* Dark overlay */}
 
       <div className="relative z-10 w-full max-w-md p-8 space-y-6">
         <PageTitle className="text-center text-4xl text-white">Login</PageTitle>
@@ -59,7 +59,7 @@ const LoginPage = () => {
             />
 
             <Button variant="primary" type="submit" className="w-full py-3!">
-              Avançar
+              Next
             </Button>
           </form>
         ) : (
@@ -69,7 +69,7 @@ const LoginPage = () => {
                 type="button"
                 onClick={() => { setStep(1); setError(''); setPassword(''); }}
                 className="text-gray-400 hover:text-white transition-colors"
-                title="Voltar"
+                title="Back"
               >
                 <ArrowLeft size={20} />
               </button>
@@ -80,8 +80,8 @@ const LoginPage = () => {
 
             <Input
               type="password"
-              placeholder="Senha"
-              label="Senha"
+              placeholder="Password"
+              label="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
@@ -89,20 +89,20 @@ const LoginPage = () => {
 
             <div className="flex justify-end">
               <Link to="/forgot-password" className="text-sm text-brand-primary hover:underline">
-                Esqueci minha senha
+                Forgot my password
               </Link>
             </div>
 
             <Button variant="primary" type="submit" className="w-full py-3!">
-              Entrar
+              Login
             </Button>
           </form>
         )}
 
         <p className="text-center text-gray-300">
-          Não tem uma conta?{' '}
+          Don't have an account?{' '}
           <Link to="/register" className="font-semibold text-brand-primary hover:underline">
-            Cadastre-se
+            Register
           </Link>
         </p>
       </div>

@@ -22,15 +22,15 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen flex justify-center items-center">
-      <div className="absolute inset-0 bg-brand-dark opacity-80"></div> {/* Overlay escuro */}
+      <div className="absolute inset-0 bg-brand-dark opacity-80"></div> {/* Dark overlay */}
       
       <div className="relative z-10 w-full max-w-md p-8 space-y-6">
-        <PageTitle className="text-center text-4xl text-white">Cadastro</PageTitle>
+        <PageTitle className="text-center text-4xl text-white">Register</PageTitle>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             type="text"
-            placeholder="Nome Completo"
-            label="Nome"
+            placeholder="Full Name"
+            label="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -52,13 +52,13 @@ const RegisterPage = () => {
             required
           />
           <Button variant="primary" type="submit" className="w-full py-3!">
-            Cadastrar
+            Register
           </Button>
         </form>
         <p className="text-center text-gray-300">
-          Já tem uma conta?{' '}
+          Already have an account?{' '}
           <Link to="/login" className="font-semibold text-brand-primary hover:underline">
-            Entrar
+            Login
           </Link>
         </p>
       </div>

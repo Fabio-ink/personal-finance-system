@@ -8,8 +8,11 @@ import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Input from '../components/ui/Input';
 import Checkbox from '../components/ui/Checkbox';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../utils/dateUtils';
 
 function AccountsPage() {
+  const { t } = useTranslation();
   const { items: accounts, loading, error, addItem, updateItem, deleteMultipleItems, fetchItems } = useCrud('/accounts');
   const [name, setName] = useState('');
   const [initialBalance, setInitialBalance] = useState('');
@@ -56,12 +59,12 @@ function AccountsPage() {
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <PageTitle>Manage Accounts</PageTitle>
+        <PageTitle>{t('accounts.title')}</PageTitle>
         {selectedAccounts.size > 0 && (
             <Button 
                 variant="danger"
                 onClick={handleDeleteSelected}>
-                Delete Selected ({selectedAccounts.size})
+                {t('accounts.deleteSelected')} ({selectedAccounts.size})
             </Button>
         )}
       </div>
@@ -69,18 +72,18 @@ function AccountsPage() {
       <Card as="form" onSubmit={handleSubmit} className="mb-8 p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Input id="acc-name" label="Account Name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Inter, XP" required />
+            <Input id="acc-name" label={t('accounts.name')} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('accounts.placeholderAccount')} required />
           </div>
           <div>
-            <Input id="acc-balance" label="Initial Balance" type="number" step="0.01" value={initialBalance} onChange={(e) => setInitialBalance(e.target.value)} placeholder="0.00" required />
+            <Input id="acc-balance" label={t('accounts.initialBalance')} type="number" step="0.01" value={initialBalance} onChange={(e) => setInitialBalance(e.target.value)} placeholder="0.00" required />
           </div>
           <div className="flex items-end gap-2">
             <Button type="submit" variant="primary" className="w-full">
-              {editingAccount ? 'Update' : 'Save'}
+              {editingAccount ? t('common.update') : t('common.save')}
             </Button>
             {editingAccount && (
               <Button onClick={cancelEdit} type="button" variant="ghost" className="w-full">
-                Cancel
+                {t('common.cancel')}
               </Button>
             )}
           </div>
@@ -96,7 +99,7 @@ function AccountsPage() {
             {accounts.length > 0 ? (
                 <>
                     <div className="flex items-center p-3">
-                        <Checkbox id="selectAllAccounts" checked={isAllSelected} onChange={handleSelectAll} label="Select All"/>
+                        <Checkbox id="selectAllAccounts" checked={isAllSelected} onChange={handleSelectAll} label={t('planning.selectAll')}/>
                     </div>
                     {accounts.map(account => (
                         <Card key={account.id} className={`flex justify-between items-center p-3 ${selectedAccounts.has(account.id) ? 'bg-blue-100 dark:bg-blue-900' : ''}`}>
@@ -106,10 +109,10 @@ function AccountsPage() {
                             </div>
                             <div className="flex items-center gap-4">
                                 <span className="text-gray-700 dark:text-gray-300">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(account.currentBalance)}
+                                    {formatCurrency(account.currentBalance)}
                                 </span>
                                 <div className="flex space-x-2">
-                                    <Button onClick={() => handleEdit(account)} variant="warning" size="sm">Edit</Button>
+                                    <Button onClick={() => handleEdit(account)} variant="warning" size="sm">{t('common.edit')}</Button>
                                 </div>
                             </div>
                         </Card>
@@ -117,7 +120,7 @@ function AccountsPage() {
                 </>
           ) : (
             <Card className="text-center p-6">
-              <p className="text-gray-500 dark:text-gray-400">No accounts found. Add one using the form above.</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('accounts.noAccounts')}</p>
             </Card>
           )}
         </div>

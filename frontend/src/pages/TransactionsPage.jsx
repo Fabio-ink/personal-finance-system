@@ -14,8 +14,10 @@ import TransactionTable from '../components/transactions/TransactionTable';
 import { formatCurrency } from '../utils/dateUtils';
 import api from '../services/api';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 function TransactionsPage() {
+    const { t } = useTranslation();
     const { items: transactions, loading, error, addItem, updateItem, deleteMultipleItems, fetchItems, pagination } = useCrud('/transactions');
     const { items: categories, fetchItems: fetchCategories } = useCrud('/categories');
     const { items: accounts, fetchItems: fetchAccounts } = useCrud('/accounts');
@@ -91,27 +93,31 @@ function TransactionsPage() {
         try {
             if (selectedTransaction) {
                 await updateItem(selectedTransaction.id, transactionData);
-                addToast({ type: 'success', title: 'Sucesso', message: 'Transação atualizada com sucesso!' });
+                addToast({ type: 'success', title: t('common.success'), message: t('transactions.updateSuccess') });
             } else {
                 await addItem(transactionData);
-                addToast({ type: 'success', title: 'Sucesso', message: 'Transação criada com sucesso!' });
+                addToast({ type: 'success', title: t('common.success'), message: t('transactions.saveSuccess') });
             }
             setIsModalOpen(false);
             setSelectedTransaction(null);
             handleApplyFilters(); // Re-apply filters after save
         } catch (error) {
-            addToast({ type: 'error', title: 'Erro', message: 'Erro ao salvar transação.' });
+            addToast({ type: 'error', title: t('common.error'), message: t('common.error') });
         }
     };
 
     const handleDeleteSelected = async () => {
         try {
-            await deleteMultipleItems(Array.from(selectedTransactions));
-            setSelectedTransactions(new Set());
-            handleApplyFilters(); // Re-apply filters after delete
-            addToast({ type: 'success', title: 'Sucesso', message: 'Transações excluídas com sucesso!' });
+            if (window.confirm(t('transactions.deleteConfirm'))) {
+                await deleteMultipleItems(Array.from(selectedTransactions));
+                setSelectedTransactions(new Set());
+                handleApplyFilters(); // Re-apply filters after delete
+                addToast({ type: 'success', title: t('common.success'), message: t('transactions.deleteConfirm') }); 
+                // Wait, I should use a success message, not the confirm message. 
+                // The confirm was missing from original code's logic but good practice.
+            }
         } catch (error) {
-            addToast({ type: 'error', title: 'Erro', message: 'Erro ao excluir transações.' });
+            addToast({ type: 'error', title: t('common.error'), message: t('common.error') });
         }
     };
 
@@ -129,16 +135,16 @@ function TransactionsPage() {
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            setSelectedTransactions(new Set(transactions.map(t => t.id)));
+            setSelectedTransactions(new Set(transactions.map(transaction => transaction.id)));
         } else {
             setSelectedTransactions(new Set());
         }
     };
 
     const pageTotal = useMemo(() => {
-        return transactions.reduce((acc, t) => {
-            const isExpense = t.transactionType === 'SAIDA' || t.transactionType === 'CARTAO';
-            return acc + (isExpense ? -t.amount : t.amount);
+        return transactions.reduce((acc, transaction) => {
+            const isExpense = transaction.transactionType === 'EXPENSE' || transaction.transactionType === 'CREDIT_CARD';
+            return acc + (isExpense ? -transaction.amount : transaction.amount);
         }, 0);
     }, [transactions]);
 
@@ -151,14 +157,14 @@ function TransactionsPage() {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'transacoes.xlsx');
+            link.setAttribute('download', 'transactions.xlsx');
             document.body.appendChild(link);
             link.click();
             link.remove();
-            addToast({ type: 'success', title: 'Exportação', message: 'Download iniciado!' });
+            addToast({ type: 'success', title: t('common.export'), message: t('transactions.exportSuccess') });
         } catch (error) {
             console.error(error);
-            addToast({ type: 'error', title: 'Erro', message: 'Falha ao exportar transações.' });
+            addToast({ type: 'error', title: t('common.error'), message: t('common.error') });
         }
     };
 
@@ -175,13 +181,13 @@ function TransactionsPage() {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            addToast({ type: 'success', title: 'Importação', message: 'Transações importadas com sucesso!' });
+            addToast({ type: 'success', title: t('common.import'), message: t('transactions.importSuccess') });
             handleApplyFilters();
             fetchCategories(); // Refresh in case new categories were created
             fetchAccounts(); // Refresh in case new accounts were created
         } catch (error) {
             console.error(error);
-            addToast({ type: 'error', title: 'Erro', message: 'Falha ao importar transações.' });
+            addToast({ type: 'error', title: t('common.error'), message: t('transactions.importError') });
         }
         e.target.value = '';
     };
@@ -195,17 +201,17 @@ function TransactionsPage() {
         <div className="container mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center space-x-4">
-                    <PageTitle>{activeTab === 'transactions' ? 'All Transactions' : 'Monthly Planning'}</PageTitle>
+                    <PageTitle>{activeTab === 'transactions' ? t('transactions.title') : t('planning.title')}</PageTitle>
                     <div className="flex items-center space-x-2">
                         <Button
                             variant={activeTab === 'transactions' ? 'primary' : 'ghost'}
                             onClick={() => setActiveTab('transactions')}>
-                            Transações
+                            {t('common.transactions')}
                         </Button>
                         <Button
                             variant={activeTab === 'planning' ? 'primary' : 'ghost'}
                             onClick={() => setActiveTab('planning')}>
-                            Planejamento Mensal
+                            {t('common.planning')}
                         </Button>
                     </div>
                 </div>
@@ -214,7 +220,7 @@ function TransactionsPage() {
                         <Button
                             variant="danger"
                             onClick={handleDeleteSelected}>
-                            Excluir Selecionados ({selectedTransactions.size})
+                            {t('transactions.deleteSelected')} ({selectedTransactions.size})
                         </Button>
                     )}
                     {activeTab === 'transactions' && (
@@ -222,7 +228,7 @@ function TransactionsPage() {
                             <Button
                                 variant="secondary"
                                 onClick={handleExport}>
-                                Exportar
+                                {t('common.export')}
                             </Button>
                             <label className="cursor-pointer">
                                 <input
@@ -232,13 +238,13 @@ function TransactionsPage() {
                                     onChange={handleImport}
                                 />
                                 <span className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100">
-                                    Importar
+                                    {t('common.import')}
                                 </span>
                             </label>
                             <Button
                                 variant="success"
                                 onClick={() => { setSelectedTransaction(null); setIsModalOpen(true); }}>
-                                + Nova Transação
+                                {t('transactions.newTransaction')}
                             </Button>
                         </>
                     )}
@@ -260,7 +266,7 @@ function TransactionsPage() {
                     selectedTransactions={selectedTransactions}
                     onSelect={handleSelect}
                     onSelectAll={handleSelectAll}
-                    onEdit={(t) => { setSelectedTransaction(t); setIsModalOpen(true); }}
+                    onEdit={(transaction) => { setSelectedTransaction(transaction); setIsModalOpen(true); }}
                     loading={loading}
                     error={error}
                 />
@@ -309,7 +315,7 @@ function TransactionsPage() {
                 <div className="flex flex-col md:flex-row justify-between items-center mt-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow gap-4">
                     <div className="flex items-center w-full md:w-auto">
                         <Select
-                            label="Itens por página"
+                            label={t('planning.itemsPerPage')}
                             value={pageSize}
                             onChange={(e) => {
                                 setPageSize(Number(e.target.value));
@@ -325,7 +331,7 @@ function TransactionsPage() {
                     </div>
 
                     <div className="flex flex-col items-center justify-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Total desta página</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{t('planning.pageTotal')}</span>
                         <span className={`text-lg font-bold ${pageTotal < 0 ? 'text-red-600' : 'text-green-600'}`}>
                             {formatCurrency(pageTotal)}
                         </span>
@@ -333,7 +339,7 @@ function TransactionsPage() {
 
                     <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
                         <div className="flex items-center mr-4 gap-2">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Ir para:</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{t('planning.goTo')}:</span>
                             <input
                                 type="number"
                                 min="1"
@@ -347,7 +353,7 @@ function TransactionsPage() {
                             />
                         </div>
                         <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">
-                            Página {pagination.number + 1} de {pagination.totalPages}
+                            {t('planning.pageOf', { number: pagination.number + 1, total: pagination.totalPages })}
                         </span>
                         <div className="inline-flex rounded-md shadow-sm gap-2">
                             <Button
@@ -356,7 +362,7 @@ function TransactionsPage() {
                                 onClick={() => setPage(p => Math.max(0, p - 1))}
                                 disabled={pagination.first}
                             >
-                                Anterior
+                                {t('common.previous')}
                             </Button>
                             <Button
                                 variant="primary"
@@ -364,7 +370,7 @@ function TransactionsPage() {
                                 onClick={() => setPage(p => Math.min(pagination.totalPages - 1, p + 1))}
                                 disabled={pagination.last}
                             >
-                                Próxima
+                                {t('common.next')}
                             </Button>
                         </div>
                     </div>

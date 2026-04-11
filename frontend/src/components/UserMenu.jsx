@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { LogOut, User, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Hook para detectar clique fora
 function useOnClickOutside(ref, handler) {
@@ -16,6 +17,7 @@ function useOnClickOutside(ref, handler) {
 }
 
 function UserMenu() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -47,7 +49,7 @@ function UserMenu() {
       {isOpen && (
         <div className="absolute top-12 right-0 w-64 bg-brand-card border border-brand-border rounded-lg shadow-lg z-50 overflow-hidden">
           <div className="p-4 border-b border-brand-border">
-            <p className="font-semibold text-white truncate">{user?.name || 'Usuário'}</p>
+            <p className="font-semibold text-white truncate">{user?.name || 'User'}</p>
             <p className="text-sm text-gray-400 truncate">{user?.email || user?.sub}</p>
           </div>
           <nav className="flex flex-col p-2">
@@ -58,13 +60,13 @@ function UserMenu() {
               }}
               className="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 text-gray-300 w-full text-left cursor-pointer transition-colors"
             >
-              <User size={16} /> Meus Dados
+              <User size={16} /> {t('profile.title')}
             </button>
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 p-2 rounded-md hover:bg-red-500/10 text-brand-red w-full text-left cursor-pointer transition-colors hover:text-red-400"
             >
-              <LogOut size={16} /> Logout
+              <LogOut size={16} /> {t('common.logout')}
             </button>
           </nav>
         </div>

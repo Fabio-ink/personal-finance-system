@@ -8,8 +8,10 @@ import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Input from '../components/ui/Input';
 import Checkbox from '../components/ui/Checkbox';
+import { useTranslation } from 'react-i18next';
 
 function CategoriesPage() {
+  const { t } = useTranslation();
   const { items: categories, loading, error, addItem, updateItem, deleteMultipleItems, fetchItems } = useCrud('/categories');
   const [name, setName] = useState('');
   const [editingCategory, setEditingCategory] = useState(null);
@@ -52,12 +54,12 @@ function CategoriesPage() {
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <PageTitle>Gerenciar Categorias</PageTitle>
+        <PageTitle>{t('categories.title')}</PageTitle>
         {selectedCategories.size > 0 && (
             <Button 
                 variant="danger"
                 onClick={handleDeleteSelected}>
-                Excluir Selecionados ({selectedCategories.size})
+                {t('common.delete')} ({selectedCategories.size})
             </Button>
         )}
       </div>
@@ -67,20 +69,20 @@ function CategoriesPage() {
           <div className="grow">
             <Input
               id="category-name"
-              label="Nome da Categoria"
+              label={t('categories.name')}
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Alimentação, Investimento"
+              placeholder={t('categories.placeholderName')}
               required
             />
           </div>
           <Button type="submit" variant="primary" className="h-10">
-            {editingCategory ? 'Atualizar' : 'Salvar'}
+            {editingCategory ? t('common.update') : t('common.save')}
           </Button>
           {editingCategory && (
             <Button onClick={cancelEdit} type="button" variant="ghost" className="h-10">
-              Cancelar
+              {t('common.cancel')}
             </Button>
           )}
         </div>
@@ -95,7 +97,7 @@ function CategoriesPage() {
           {categories.length > 0 ? (
             <>
                 <div className="flex items-center p-3">
-                    <Checkbox id="selectAllCategories" checked={isAllSelected} onChange={handleSelectAll} label="Selecionar Todos"/>
+                    <Checkbox id="selectAllCategories" checked={isAllSelected} onChange={handleSelectAll} label={t('planning.selectAll')}/>
                 </div>
                 {categories.map(cat => (
                   <Card key={cat.id} className={`flex justify-between items-center p-3 ${selectedCategories.has(cat.id) ? 'bg-blue-100 dark:bg-blue-900' : ''}`}>
@@ -104,14 +106,14 @@ function CategoriesPage() {
                         <span className="font-semibold text-gray-800 dark:text-gray-200 ml-2">{cat.name}</span>
                     </div>
                     <div className="flex space-x-2">
-                      <Button onClick={() => handleEdit(cat)} variant="warning" size="sm">Editar</Button>
+                      <Button onClick={() => handleEdit(cat)} variant="warning" size="sm">{t('common.edit')}</Button>
                     </div>
                   </Card>
                 ))}
             </>
           ) : (
             <Card className="text-center p-6">
-              <p className="text-gray-500 dark:text-gray-400">Nenhuma categoria encontrada. Adicione uma usando o formulário acima.</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('categories.noCategories')}</p>
             </Card>
           )}
         </div>

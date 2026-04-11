@@ -9,10 +9,13 @@ import Checkbox from '../components/ui/Checkbox';
 import MonthlyPlanningFormModal from '../components/MonthlyPlanningFormModal';
 import MonthlyPlanningFilterModal from '../components/MonthlyPlanningFilterModal';
 import { Plus, Filter, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
+import { formatCurrency } from '../utils/dateUtils';
 import Select from '../components/ui/Select';
 
 function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransactions }) {
+    const { t } = useTranslation();
     const { items: planningEntries, loading, error, addItem, updateItem, deleteMultipleItems, fetchItems, pagination } = useCrud('/monthly-planning');
 
     // Modal states
@@ -59,7 +62,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
     const [selectedPlanningEntries, setSelectedPlanningEntries] = useState(new Set());
 
     const handleDeleteSelected = async () => {
-        if (window.confirm(`Tem certeza que deseja excluir ${selectedPlanningEntries.size} itens?`)) {
+        if (window.confirm(t('planning.deleteConfirm'))) {
             await deleteMultipleItems(Array.from(selectedPlanningEntries));
             setSelectedPlanningEntries(new Set());
         }
@@ -79,7 +82,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            setSelectedPlanningEntries(new Set(planningEntries.map(t => t.id)));
+            setSelectedPlanningEntries(new Set(planningEntries.map(item => item.id)));
         } else {
             setSelectedPlanningEntries(new Set());
         }
@@ -124,30 +127,14 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
         }
     };
 
-    const months = [
-        { value: 1, label: 'Janeiro' },
-        { value: 2, label: 'Fevereiro' },
-        { value: 3, label: 'Março' },
-        { value: 4, label: 'Abril' },
-        { value: 5, label: 'Maio' },
-        { value: 6, label: 'Junho' },
-        { value: 7, label: 'Julho' },
-        { value: 8, label: 'Agosto' },
-        { value: 9, label: 'Setembro' },
-        { value: 10, label: 'Outubro' },
-        { value: 11, label: 'Novembro' },
-        { value: 12, label: 'Dezembro' },
-    ];
-
     const getMonthName = (monthNumber) => {
-        const month = months.find(m => m.value === monthNumber);
-        return month ? month.label : '';
+        return t(`months.${monthNumber}`);
     };
 
     return (
         <div className="container mx-auto max-w-5xl">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                <PageTitle>Planejamento Mensal</PageTitle>
+                <PageTitle>{t('planning.title')}</PageTitle>
                 <div className="flex gap-3 w-full md:w-auto">
                     <Button
                         variant="outline"
@@ -155,7 +142,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                         className="flex items-center gap-2 flex-1 md:flex-none justify-center"
                     >
                         <Filter size={18} />
-                        Filtrar
+                        {t('common.filter')}
                     </Button>
                     <Button
                         variant="primary"
@@ -163,7 +150,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                         className="flex items-center gap-2 flex-1 md:flex-none justify-center shadow-lg shadow-brand-primary/20"
                     >
                         <Plus size={18} />
-                        Novo Planejamento
+                        {t('planning.newPlanning')}
                     </Button>
                 </div>
             </div>
@@ -172,7 +159,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                 <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center justify-between">
                         <span className="text-red-200 font-medium pl-2">
-                            {selectedPlanningEntries.size} item(s) selecionado(s)
+                            {selectedPlanningEntries.size} {t('planning.itemsSelected')}
                         </span>
                         <Button
                             variant="danger"
@@ -181,7 +168,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                             className="flex items-center gap-2"
                         >
                             <Trash2 size={16} />
-                            Excluir Selecionados
+                            {t('planning.deleteSelected')}
                         </Button>
                     </div>
                 </div>
@@ -201,7 +188,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                 id="selectAllPlanningEntries"
                                 checked={isAllSelected}
                                 onChange={handleSelectAll}
-                                label="Selecionar Todos"
+                                label={t('planning.selectAll')}
                             />
                         </div>
                     )}
@@ -235,10 +222,10 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                                                 onNavigateToTransactions(entry.month, entry.year, entry.category?.id);
                                                             }
                                                         }}
-                                                        title="Ver transações relacionadas"
+                                                        title="View related transactions"
                                                     >
                                                         <h3 className="font-bold text-lg text-white flex items-center gap-2">
-                                                            {entry.category?.name || 'Geral'}
+                                                            {entry.category?.name || t('common.all')}
                                                             <span className="text-xs font-normal text-gray-400 bg-brand-surface-light px-2 py-0.5 rounded-full border border-brand-border">
                                                                 {getMonthName(entry.month)} {entry.year}
                                                             </span>
@@ -246,12 +233,12 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                                     </div>
                                                 </div>
                                                 <Button
-                                                    onClick={() => handleOpenEditModal(entry)}
                                                     variant="ghost"
                                                     size="sm"
                                                     className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => handleOpenEditModal(entry)}
                                                 >
-                                                    Editar
+                                                    {t('common.edit')}
                                                 </Button>
                                             </div>
 
@@ -262,31 +249,31 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                                         onNavigateToTransactions(entry.month, entry.year, entry.category?.id);
                                                     }
                                                 }}
-                                                title="Ver transações relacionadas"
+                                                title="View related transactions"
                                             >
                                                 <div>
-                                                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Gasto</p>
+                                                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">{t('planning.spent')}</p>
                                                     <p className={`font-mono font-bold text-lg ${isOverBudget ? 'text-red-400' : 'text-white'}`}>
-                                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(spent)}
+                                                        {formatCurrency(spent)}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Planejado</p>
+                                                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">{t('planning.planned')}</p>
                                                     <p className="font-mono font-bold text-lg text-white">
-                                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(planned)}
+                                                        {formatCurrency(planned)}
                                                     </p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Restante</p>
+                                                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">{t('planning.remaining')}</p>
                                                     <p className={`font-mono font-bold text-lg ${remaining < 0 ? 'text-red-400' : 'text-brand-success'}`}>
-                                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(remaining)}
+                                                        {formatCurrency(remaining)}
                                                     </p>
                                                 </div>
                                             </div>
 
                                             <div className="relative pt-2">
                                                 <div className="flex justify-between text-xs mb-2">
-                                                    <span className="text-gray-400 font-medium">Progresso</span>
+                                                    <span className="text-gray-400 font-medium">{t('planning.progress')}</span>
                                                     <span className={`font-mono font-bold ${isOverBudget ? 'text-red-400' : 'text-brand-primary'}`}>
                                                         {percentage.toFixed(0)}%
                                                     </span>
@@ -308,9 +295,9 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                             <div className="bg-brand-surface-light w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Filter className="text-gray-400" size={24} />
                             </div>
-                            <h3 className="text-lg font-medium text-white mb-2">Nenhum planejamento encontrado</h3>
+                            <h3 className="text-lg font-medium text-white mb-2">{t('planning.noPlanning')}</h3>
                             <p className="text-gray-400 max-w-sm mx-auto">
-                                Não encontramos nenhum registro com os filtros atuais. Tente limpar os filtros ou criar um novo planejamento.
+                                {t('planning.noPlanningDesc')}
                             </p>
                         </div>
                     )}
@@ -321,7 +308,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                 <div className="flex flex-col md:flex-row justify-between items-center mt-4 bg-brand-surface border border-brand-border p-4 rounded-lg shadow gap-4">
                     <div className="flex items-center w-full md:w-auto">
                         <Select
-                            label="Itens por página"
+                            label={t('planning.itemsPerPage')}
                             value={pageSize}
                             onChange={(e) => {
                                 setPageSize(Number(e.target.value));
@@ -338,7 +325,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
 
                     <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
                         <div className="flex items-center mr-4 gap-2">
-                            <span className="text-sm text-gray-400">Ir para:</span>
+                            <span className="text-sm text-gray-400">{t('planning.goTo')}:</span>
                             <input
                                 type="number"
                                 min="1"
@@ -352,7 +339,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                             />
                         </div>
                         <span className="text-sm text-gray-400 mr-2">
-                            Página {pagination.number + 1} de {pagination.totalPages}
+                            {t('planning.pageOf', { number: pagination.number + 1, total: pagination.totalPages })}
                         </span>
                         <div className="inline-flex rounded-md shadow-sm gap-2">
                             <Button
@@ -361,7 +348,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                 onClick={() => setPage(p => Math.max(0, p - 1))}
                                 disabled={pagination.first}
                             >
-                                Anterior
+                                {t('common.previous')}
                             </Button>
                             <Button
                                 variant="primary"
@@ -369,7 +356,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                 onClick={() => setPage(p => Math.min(pagination.totalPages - 1, p + 1))}
                                 disabled={pagination.last}
                             >
-                                Próxima
+                                {t('common.next')}
                             </Button>
                         </div>
                     </div>

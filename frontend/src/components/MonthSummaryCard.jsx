@@ -2,13 +2,12 @@ import React from 'react';
 import Card from './ui/Card';
 import PageTitle from './ui/PageTitle';
 import { Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../utils/dateUtils';
 
-// Função para formatar valores como moeda (BRL)
-const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
-};
 
 function MonthSummaryCard({ title, totalSpent, totalIncome, plannedBudget, className, onClickTitle, onClickPercentage }) {
+    const { t } = useTranslation();
     const percentageSpent = plannedBudget > 0 ? (totalSpent / plannedBudget) * 100 : 0;
 
     return (
@@ -17,7 +16,7 @@ function MonthSummaryCard({ title, totalSpent, totalIncome, plannedBudget, class
                 <div 
                     className={`${onClickTitle ? 'cursor-pointer transition-opacity hover:opacity-80' : ''}`}
                     onClick={onClickTitle ? onClickTitle : undefined}
-                    title={onClickTitle ? "Ver transações deste mês" : ""}
+                    title={onClickTitle ? t('planning.viewTransactions') : ""}
                 >
                     <PageTitle level={3} className="font-bold text-xl text-white">{title}</PageTitle>
                 </div>
@@ -28,15 +27,15 @@ function MonthSummaryCard({ title, totalSpent, totalIncome, plannedBudget, class
 
             <div className="text-sm space-y-3 mt-2">
                 <div className="flex justify-between items-center">
-                    <span className="text-text-secondary">Valor gasto:</span>
+                    <span className="text-text-secondary">{t('dashboard.totalSpent')}:</span>
                     <span className="font-medium text-white">{formatCurrency(totalSpent)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-text-secondary">Entradas:</span>
+                    <span className="text-text-secondary">{t('dashboard.income')}:</span>
                     <span className="font-medium text-white">{formatCurrency(totalIncome)}</span>
                 </div>
                  <div className="flex justify-between items-center">
-                    <span className="text-text-secondary">Gasto Planejado:</span>
+                    <span className="text-text-secondary">{t('dashboard.plannedBudget')}:</span>
                     <span className="font-medium text-white">{formatCurrency(plannedBudget)}</span>
                 </div>
             </div>
@@ -45,10 +44,10 @@ function MonthSummaryCard({ title, totalSpent, totalIncome, plannedBudget, class
                 <div 
                     className={`${onClickPercentage ? 'cursor-pointer transition-opacity hover:opacity-80' : ''}`}
                     onClick={onClickPercentage ? onClickPercentage : undefined}
-                    title={onClickPercentage ? "Ver planejamento mensal" : ""}
+                    title={onClickPercentage ? t('common.planning') : ""}
                 >
                     <div className="flex justify-between text-xs mb-1">
-                        <span className="text-text-secondary">Porcentagem Gasta:</span>
+                        <span className="text-text-secondary">{t('dashboard.percentageSpent')}:</span>
                         <span className="text-brand-primary font-mono">{percentageSpent.toFixed(0)}%</span>
                     </div>
                     <div className="w-full bg-brand-dark rounded-full h-2 overflow-hidden">

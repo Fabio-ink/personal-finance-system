@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, isToday } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { twMerge } from 'tailwind-merge';
 import IconButton from './IconButton';
 
 const DatePicker = ({ label, value, onChange, className = '', ...props }) => {
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(value ? new Date(value) : null);
+  const dateLocale = i18n.language.startsWith('pt') ? ptBR : enUS;
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -62,7 +65,7 @@ const DatePicker = ({ label, value, onChange, className = '', ...props }) => {
           <ChevronLeft className="w-5 h-5" />
         </IconButton>
         <div className="text-sm font-semibold text-white capitalize">
-          {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+          {format(currentMonth, 'MMMM yyyy', { locale: dateLocale })}
         </div>
         <IconButton
           onClick={nextMonth}
@@ -84,7 +87,7 @@ const DatePicker = ({ label, value, onChange, className = '', ...props }) => {
     for (let i = 0; i < 7; i++) {
       days.push(
         <div className="text-xs font-medium text-gray-500 text-center py-1 uppercase" key={i}>
-          {format(addDays(startDate, i), dateFormat, { locale: ptBR })}
+          {format(addDays(startDate, i), dateFormat, { locale: dateLocale })}
         </div>
       );
     }
@@ -152,7 +155,7 @@ const DatePicker = ({ label, value, onChange, className = '', ...props }) => {
         <div className="flex items-center w-full p-3 bg-brand-dark border border-brand-border rounded-xl text-white transition-all group-hover:border-gray-500 focus-within:border-brand-primary focus-within:ring-1 focus-within:ring-brand-primary">
             <CalendarIcon className="w-5 h-5 text-gray-400 mr-3 group-hover:text-white transition-colors" />
             <span className={twMerge("text-sm", !selectedDate && "text-text-muted")}>
-                {selectedDate ? format(selectedDate, 'dd/MM/yyyy') : 'Selecione uma data'}
+                {selectedDate ? format(selectedDate, 'dd/MM/yyyy') : t('common.selectDate')}
             </span>
         </div>
       </div>
