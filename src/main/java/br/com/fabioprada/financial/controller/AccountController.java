@@ -48,7 +48,7 @@ public class AccountController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         return accountService.findById(id)
-                .map(conta -> {
+                .map(account -> {
                     accountService.deleteById(id);
                     return ResponseEntity.ok().build();
                 }).orElse(ResponseEntity.notFound().build());

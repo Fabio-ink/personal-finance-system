@@ -24,13 +24,13 @@ public class ExcelService {
     public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     // Transactions Constants
-    static String[] TRANSACTION_HEADERS = { "Nome", "Data", "Valor", "Tipo", "Categoria", "Conta Saída",
-            "Conta Entrada" };
-    static String TRANSACTIONS_SHEET = "Transações";
+    static String[] TRANSACTION_HEADERS = { "Name", "Date", "Amount", "Type", "Category", "Out Account",
+            "In Account" };
+    static String TRANSACTIONS_SHEET = "Transactions";
 
     // Planning Constants
-    static String[] PLANNING_HEADERS = { "Mês", "Ano", "Categoria", "Valor Estimado" };
-    static String PLANNING_SHEET = "Planejamento";
+    static String[] PLANNING_HEADERS = { "Month", "Year", "Category", "Estimated Amount" };
+    static String PLANNING_SHEET = "Planning";
 
     public ByteArrayInputStream exportToExcel(List<Transaction> transactions,
             List<br.com.fabioprada.financial.model.MonthlyPlanning> plannings) {
@@ -186,11 +186,11 @@ public class ExcelService {
 
         for (Cell cell : header) {
             String val = getCellValueAsString(cell).trim();
-            if ("Nome".equalsIgnoreCase(val))
+            if ("Name".equalsIgnoreCase(val) || "Nome".equalsIgnoreCase(val))
                 hasName = true;
-            if ("Data".equalsIgnoreCase(val))
+            if ("Date".equalsIgnoreCase(val) || "Data".equalsIgnoreCase(val))
                 hasDate = true;
-            if ("Valor".equalsIgnoreCase(val))
+            if ("Amount".equalsIgnoreCase(val) || "Valor".equalsIgnoreCase(val))
                 hasAmount = true;
         }
 
@@ -213,13 +213,13 @@ public class ExcelService {
 
         for (Cell cell : header) {
             String val = getCellValueAsString(cell).trim();
-            if ("Mês".equalsIgnoreCase(val) || "Mes".equalsIgnoreCase(val))
+            if ("Month".equalsIgnoreCase(val) || "Mês".equalsIgnoreCase(val) || "Mes".equalsIgnoreCase(val))
                 hasMonth = true;
-            if ("Ano".equalsIgnoreCase(val))
+            if ("Year".equalsIgnoreCase(val) || "Ano".equalsIgnoreCase(val))
                 hasYear = true;
-            if ("Categoria".equalsIgnoreCase(val))
+            if ("Category".equalsIgnoreCase(val) || "Categoria".equalsIgnoreCase(val))
                 hasCategory = true;
-            if ("Valor Estimado".equalsIgnoreCase(val))
+            if ("Estimated Amount".equalsIgnoreCase(val) || "Valor Estimado".equalsIgnoreCase(val))
                 hasEstimated = true;
         }
 

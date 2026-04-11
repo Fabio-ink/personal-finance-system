@@ -80,12 +80,12 @@ public class DashboardService {
                 month.getMonthValue(), userId);
 
         BigDecimal totalIncome = transactions.stream()
-                .filter(t -> t.getTransactionType() == TransactionType.ENTRADA)
+                .filter(t -> t.getTransactionType() == TransactionType.INCOME)
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalSpent = transactions.stream()
-                .filter(t -> t.getTransactionType() == TransactionType.SAIDA)
+                .filter(t -> t.getTransactionType() == TransactionType.EXPENSE)
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 

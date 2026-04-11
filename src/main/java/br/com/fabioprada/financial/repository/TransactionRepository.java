@@ -18,7 +18,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
         List<Transaction> findByYearAndMonth(@Param("year") int year, @Param("month") int month,
                         @Param("userId") @NonNull Long userId);
 
-        @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.category.id = :categoryId AND YEAR(t.creationDate) = :year AND MONTH(t.creationDate) = :month AND t.user.id = :userId AND (t.transactionType = 'SAIDA' OR t.transactionType = 'MOVIMENTACAO')")
+        @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.category.id = :categoryId AND YEAR(t.creationDate) = :year AND MONTH(t.creationDate) = :month AND t.user.id = :userId AND (t.transactionType = 'EXPENSE' OR t.transactionType = 'TRANSFER')")
         BigDecimal sumAmountByCategoryIdAndYearAndMonthAndUserId(@Param("categoryId") Long categoryId,
                         @Param("year") int year, @Param("month") int month, @Param("userId") Long userId);
 

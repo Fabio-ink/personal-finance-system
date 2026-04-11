@@ -89,7 +89,7 @@ public class TransactionController {
                 transactionType);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=transacoes.xlsx");
+        headers.add("Content-Disposition", "attachment; filename=transactions.xlsx");
 
         return ResponseEntity
                 .ok()

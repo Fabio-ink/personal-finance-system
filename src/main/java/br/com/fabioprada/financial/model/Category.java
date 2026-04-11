@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "categorias", uniqueConstraints = {
+@Table(name = "categories", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "name", "user_id" })
 }, indexes = {
         @Index(name = "idx_category_user", columnList = "user_id")

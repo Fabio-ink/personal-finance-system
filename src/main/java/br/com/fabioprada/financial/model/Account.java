@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import org.hibernate.annotations.Formula;
 
 @Entity
-@Table(name = "contas")
+@Table(name = "accounts")
 @Getter
 @Setter
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
@@ -25,8 +25,8 @@ public class Account {
     private BigDecimal initialBalance;
 
     @Formula("initial_balance + " +
-            "(SELECT COALESCE(SUM(t.amount), 0) FROM transacoes t WHERE t.conta_entrada_id = id) - " +
-            "(SELECT COALESCE(SUM(t.amount), 0) FROM transacoes t WHERE t.conta_saida_id = id)")
+            "(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.in_account_id = id) - " +
+            "(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.out_account_id = id)")
     private BigDecimal currentBalance;
 
     @ManyToOne(fetch = FetchType.LAZY)

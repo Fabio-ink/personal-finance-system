@@ -60,12 +60,12 @@ public class AuthController {
             String token = java.util.UUID.randomUUID().toString();
             userService.createPasswordResetTokenForUser(user, token);
 
-            emailService.sendSimpleMessage(email, "Recuperação de Senha - SyncWallet",
-                    "Seu código de recuperação é: " + token);
+            emailService.sendSimpleMessage(email, "Password Recovery - SyncWallet",
+                    "Your recovery code is: " + token);
 
-            return ResponseEntity.ok("Código de recuperação enviado para o email.");
+            return ResponseEntity.ok("Recovery code sent to your email.");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro ao processar solicitação: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error processing request: " + e.getMessage());
         }
     }
 
@@ -79,9 +79,9 @@ public class AuthController {
 
         if (user.isPresent()) {
             userService.updatePassword(user.get(), newPassword);
-            return ResponseEntity.ok("Senha alterada com sucesso.");
+            return ResponseEntity.ok("Password changed successfully.");
         } else {
-            return ResponseEntity.badRequest().body("Token inválido ou expirado.");
+            return ResponseEntity.badRequest().body("Invalid or expired token.");
         }
     }
 }

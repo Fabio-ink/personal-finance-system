@@ -50,9 +50,9 @@ public class EmailService {
 
         try {
             restTemplate.postForEntity(url, requestEntity, String.class);
-            System.out.println("Email enviado com sucesso via Brevo API para: " + to);
+            System.out.println("Email sent successfully via Brevo API to: " + to);
         } catch (Exception e) {
-            System.err.println("Erro ao enviar email pelo Brevo API: " + e.getMessage());
+            System.err.println("Error sending email via Brevo API: " + e.getMessage());
             e.printStackTrace();
         }
     }

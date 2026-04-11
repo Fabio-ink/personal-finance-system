@@ -67,7 +67,7 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new IllegalArgumentException("Senha atual incorreta");
+            throw new IllegalArgumentException("Current password incorrect");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));

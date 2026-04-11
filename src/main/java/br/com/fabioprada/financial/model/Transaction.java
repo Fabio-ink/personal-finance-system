@@ -7,9 +7,9 @@ import java.time.LocalDate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 @Entity
-@Table(name = "transacoes", indexes = {
+@Table(name = "transactions", indexes = {
         @Index(name = "idx_transaction_user_date", columnList = "user_id, creation_date"),
-        @Index(name = "idx_transaction_user_category", columnList = "user_id, categoria_id")
+        @Index(name = "idx_transaction_user_category", columnList = "user_id, category_id")
 })
 @CrossOrigin(origins = "http://localhost:5173") // Permite acesso do nosso frontend
 @Data
@@ -33,15 +33,15 @@ public class Transaction {
     private TransactionType transactionType;
 
     @ManyToOne
-    @JoinColumn(name = "categoria_id")
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @ManyToOne
-    @JoinColumn(name = "conta_saida_id")
+    @JoinColumn(name = "out_account_id")
     private Account outAccount;
 
     @ManyToOne
-    @JoinColumn(name = "conta_entrada_id")
+    @JoinColumn(name = "in_account_id")
     private Account inAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
