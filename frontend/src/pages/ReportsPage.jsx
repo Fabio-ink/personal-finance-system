@@ -37,7 +37,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
     const amt = parseFloat(t.amount) || 0;
     if (t.transactionType === 'INCOME') {
       totalIncome += amt;
-    } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+    } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD' || (t.transactionType === 'TRANSFER' && (t.category || t.categoryId || t.categoryName))) {
       totalExpense += amt;
       const catName = t.category?.name || t.categoryName || 'Outros';
       categoryExpenses[catName] = (categoryExpenses[catName] || 0) + amt;
@@ -81,7 +81,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
       let spentPastMonth = 0;
       pastTx.forEach(t => {
         if ((t.category?.name === catName || t.categoryName === catName) &&
-            (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD')) {
+            (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD' || t.transactionType === 'TRANSFER')) {
           spentPastMonth += parseFloat(t.amount) || 0;
         }
       });
@@ -128,7 +128,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
       const amt = parseFloat(t.amount) || 0;
       if (t.transactionType === 'INCOME') {
         inc += amt;
-      } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+      } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD' || (t.transactionType === 'TRANSFER' && (t.category || t.categoryId || t.categoryName))) {
         exp += amt;
       }
     });

@@ -74,7 +74,7 @@ export function useCrud(endpoint) {
               const tYear = d.getFullYear();
               if (tMonth === entry.month && tYear === entry.year) {
                 const catId = t.category?.id || t.categoryId;
-                const isExpense = t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD';
+                const isExpense = t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD' || t.transactionType === 'TRANSFER';
                 if (isExpense && String(catId) === String(entry.category?.id)) {
                   spent += parseFloat(t.amount) || 0;
                 }

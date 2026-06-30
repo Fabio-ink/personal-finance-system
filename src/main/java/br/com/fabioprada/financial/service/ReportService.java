@@ -51,7 +51,7 @@ public class ReportService {
             BigDecimal amt = t.getAmount() != null ? t.getAmount() : BigDecimal.ZERO;
             if (t.getTransactionType() == TransactionType.INCOME) {
                 totalIncome = totalIncome.add(amt);
-            } else if (t.getTransactionType() == TransactionType.EXPENSE || t.getTransactionType() == TransactionType.CREDIT_CARD) {
+            } else if (t.getTransactionType() == TransactionType.EXPENSE || t.getTransactionType() == TransactionType.CREDIT_CARD || (t.getTransactionType() == TransactionType.TRANSFER && t.getCategory() != null)) {
                 totalExpense = totalExpense.add(amt);
                 if (t.getCategory() != null) {
                     Long catId = t.getCategory().getId();
@@ -89,7 +89,7 @@ public class ReportService {
                 BigDecimal spentPastMonth = BigDecimal.ZERO;
                 for (Transaction t : pastTx) {
                     if (t.getCategory() != null && t.getCategory().getId().equals(cat.getId()) &&
-                        (t.getTransactionType() == TransactionType.EXPENSE || t.getTransactionType() == TransactionType.CREDIT_CARD)) {
+                        (t.getTransactionType() == TransactionType.EXPENSE || t.getTransactionType() == TransactionType.CREDIT_CARD || t.getTransactionType() == TransactionType.TRANSFER)) {
                         spentPastMonth = spentPastMonth.add(t.getAmount() != null ? t.getAmount() : BigDecimal.ZERO);
                     }
                 }
@@ -125,7 +125,7 @@ public class ReportService {
                 BigDecimal amt = t.getAmount() != null ? t.getAmount() : BigDecimal.ZERO;
                 if (t.getTransactionType() == TransactionType.INCOME) {
                     inc = inc.add(amt);
-                } else if (t.getTransactionType() == TransactionType.EXPENSE || t.getTransactionType() == TransactionType.CREDIT_CARD) {
+                } else if (t.getTransactionType() == TransactionType.EXPENSE || t.getTransactionType() == TransactionType.CREDIT_CARD || (t.getTransactionType() == TransactionType.TRANSFER && t.getCategory() != null)) {
                     exp = exp.add(amt);
                 }
             }
