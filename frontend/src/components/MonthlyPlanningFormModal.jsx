@@ -76,7 +76,7 @@ function MonthlyPlanningFormModal({ isOpen, onClose, onSubmit, initialData, cate
                     <Select name="categoryId" label={t('planning.form.category')} value={formData.categoryId} onChange={handleChange}>
                         <option value="">{t('planning.form.selectCategory')}</option>
                         {categories.map(cat => (
-                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            <option key={cat.id} value={cat.id}>{t(`categories.${cat.name.toLowerCase()}`, cat.name)}</option>
                         ))}
                     </Select>
                     

@@ -225,7 +225,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                                         title="View related transactions"
                                                     >
                                                         <h3 className="font-bold text-lg text-white flex items-center gap-2">
-                                                            {entry.category?.name || t('common.all')}
+                                                            {entry.category?.name ? t(`categories.${entry.category.name.toLowerCase()}`, entry.category.name) : t('common.all')}
                                                             <span className="text-xs font-normal text-gray-400 bg-brand-surface-light px-2 py-0.5 rounded-full border border-brand-border">
                                                                 {getMonthName(entry.month)} {entry.year}
                                                             </span>

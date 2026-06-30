@@ -56,4 +56,36 @@ public class EmailService {
             e.printStackTrace();
         }
     }
+
+    public void sendHtmlMessage(String to, String subject, String htmlContent) {
+        String url = "https://api.brevo.com/v3/smtp/email";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("api-key", brevoApiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+        Map<String, Object> sender = new HashMap<>();
+        sender.put("name", "SyncWallet API");
+        sender.put("email", "syncwallett@gmail.com");
+
+        Map<String, String> recipient = new HashMap<>();
+        recipient.put("email", to);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("sender", sender);
+        body.put("to", List.of(recipient));
+        body.put("subject", subject);
+        body.put("htmlContent", htmlContent);
+
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        try {
+            restTemplate.postForEntity(url, requestEntity, String.class);
+            System.out.println("HTML Email sent successfully via Brevo API to: " + to);
+        } catch (Exception e) {
+            System.err.println("Error sending HTML email via Brevo API: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, PieChart, List } from 'lucide-react';
+import { LayoutDashboard, PieChart, List, BarChart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './src/contexts/AuthContext.jsx';
 
@@ -8,6 +8,7 @@ import DashboardPage from './src/pages/DashboardPage.jsx';
 import AccountsPage from './src/pages/AccountsPage.jsx';
 import CategoriesPage from './src/pages/CategoriesPage.jsx';
 import TransactionsPage from './src/pages/TransactionsPage.jsx';
+import ReportsPage from './src/pages/ReportsPage.jsx';
 import LoginPage from './src/pages/LoginPage.jsx';
 import RegisterPage from './src/pages/RegisterPage.jsx';
 import ForgotPasswordPage from './src/pages/ForgotPasswordPage.jsx';
@@ -16,10 +17,17 @@ import LogoutSuccessPage from './src/pages/LogoutSuccessPage.jsx';
 import ProtectedRoute from './src/components/ProtectedRoute.jsx';
 import UserMenu from './src/components/UserMenu.jsx';
 import UserProfilePage from './src/pages/UserProfilePage.jsx';
+import { startSyncLoop, stopSyncLoop } from './src/services/syncService.js';
+import { useEffect } from 'react';
 
 const AppLayout = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+
+  useEffect(() => {
+    startSyncLoop();
+    return () => stopSyncLoop();
+  }, []);
 
   const getDisplayName = (name) => {
     if (!name) return 'User';
@@ -69,6 +77,9 @@ const AppLayout = () => {
             <NavLink to="/categories" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
             <PieChart size={22} /> {t('common.categories')}
             </NavLink>
+            <NavLink to="/reports" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <BarChart size={22} /> {t('reports.title')}
+            </NavLink>
         </div>
 
         <div className="mt-auto pt-8 border-t border-brand-border/30">
@@ -117,6 +128,7 @@ function App() {
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route path="/profile" element={<UserProfilePage />} />
         </Route>
       </Route>

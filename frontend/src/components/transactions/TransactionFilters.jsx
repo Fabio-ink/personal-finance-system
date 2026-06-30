@@ -45,7 +45,7 @@ const TransactionFilters = ({ filters, onChange, onClear, categories }) => {
                 >
                     <option value="">{t('transactions.allCategories')}</option>
                     {categories.map(category => (
-                        <option key={category.id} value={category.id}>{category.name}</option>
+                        <option key={category.id} value={category.id}>{t(`categories.${category.name.toLowerCase()}`, category.name)}</option>
                     ))}
                 </Select>
                 <Select

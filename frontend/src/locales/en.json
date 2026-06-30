@@ -75,7 +75,13 @@
     "totalSpent": "Total Spent",
     "income": "Income",
     "plannedBudget": "Planned Budget",
-    "percentageSpent": "Percentage Spent"
+    "percentageSpent": "Percentage Spent",
+    "week": "1 Week",
+    "month": "1 Month",
+    "year": "1 Year",
+    "max": "Max",
+    "expenses": "Expenses",
+    "transfers": "Transfers"
   },
   "transactions": {
     "title": "All Transactions",
@@ -175,7 +181,14 @@
     "title": "Manage Categories",
     "name": "Category Name",
     "placeholderName": "e.g., Food, Investment",
-    "noCategories": "No categories found. Add one using the form above."
+    "noCategories": "No categories found. Add one using the form above.",
+    "food": "Food",
+    "transport": "Transport",
+    "entertainment": "Entertainment",
+    "housing": "Housing",
+    "health": "Health",
+    "education": "Education",
+    "others": "Others"
   },
   "months": {
     "1": "January",
@@ -190,5 +203,22 @@
     "10": "October",
     "11": "November",
     "12": "December"
+  },
+  "reports": {
+    "title": "Financial Reports",
+    "totalIncome": "Total Income",
+    "totalExpense": "Total Expense",
+    "netBalance": "Net Balance",
+    "distribution": "Expense Distribution by Category",
+    "trends": "Income vs Expense Trend (Last 6 Months)",
+    "budgetProgress": "Monthly Budget Progress",
+    "category": "Category",
+    "spent": "Spent",
+    "budget": "Budget",
+    "average": "Average (Last 3 Months)",
+    "status": "Status",
+    "withinLimit": "Within Limit",
+    "exceeded": "Exceeded Limit",
+    "noData": "Not enough data to generate reports in this period."
   }
 }

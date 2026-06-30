@@ -40,3 +40,7 @@ application-dev.properties
 GEMINI.md
 .agents/
 migration_v2_english_enforcement.sql
+
+# Logs
+backend.log
+*.log

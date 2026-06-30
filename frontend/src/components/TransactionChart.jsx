@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 const TransactionChart = ({ transactions }) => {
+    const { t, i18n } = useTranslation();
     const [timeRange, setTimeRange] = React.useState('1M'); // Default to 1 Month
 
     const chartData = useMemo(() => {
@@ -50,7 +52,7 @@ const TransactionChart = ({ transactions }) => {
                  localDate = new Date(t.creationDate);
             }
             
-            const date = localDate.toLocaleDateString('en-US');
+            const date = localDate.toLocaleDateString(i18n.language.startsWith('pt') ? 'pt-BR' : 'en-US');
             if (!acc[date]) {
                 acc[date] = { date, income: 0, expense: 0, transfer: 0, rawDate: localDate };
             }
@@ -84,7 +86,7 @@ const TransactionChart = ({ transactions }) => {
                 transfer: cumulativeTransfer
             };
         });
-    }, [transactions, timeRange]);
+    }, [transactions, timeRange, i18n.language]);
 
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
@@ -96,7 +98,10 @@ const TransactionChart = ({ transactions }) => {
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                             <span className="text-gray-400 capitalize">{entry.name}:</span>
                             <span className="text-white font-mono">
-                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(entry.value)}
+                                {new Intl.NumberFormat(i18n.language.startsWith('pt') ? 'pt-BR' : 'en-US', {
+                                    style: 'currency',
+                                    currency: i18n.language.startsWith('pt') ? 'BRL' : 'USD'
+                                }).format(entry.value)}
                             </span>
                         </div>
                     ))}
@@ -119,7 +124,7 @@ const TransactionChart = ({ transactions }) => {
                                 : 'bg-brand-card border border-brand-border/50 text-gray-400 hover:text-white hover:border-brand-primary/50'
                         }`}
                     >
-                        {range === '1S' ? '1 Week' : range === '1M' ? '1 Month' : range === '1A' ? '1 Year' : 'Max'}
+                        {range === '1S' ? t('dashboard.week') : range === '1M' ? t('dashboard.month') : range === '1A' ? t('dashboard.year') : t('dashboard.max')}
                     </button>
                 ))}
             </div>
@@ -151,7 +156,7 @@ const TransactionChart = ({ transactions }) => {
                         
                         {/* Income - Green/Teal */}
                         <Line 
-                            name="Income"
+                            name={t('dashboard.income')}
                             type="linear" 
                             dataKey="income" 
                             stroke="#10B981" 
@@ -162,7 +167,7 @@ const TransactionChart = ({ transactions }) => {
 
                         {/* Transfers - Purple */}
                         <Line 
-                            name="Transfers"
+                            name={t('dashboard.transfers')}
                             type="linear" 
                             dataKey="transfer" 
                             stroke="#8B5CF6" 
@@ -173,7 +178,7 @@ const TransactionChart = ({ transactions }) => {
 
                         {/* Expenses - Red */}
                         <Line 
-                            name="Expenses"
+                            name={t('dashboard.expenses')}
                             type="linear" 
                             dataKey="expense" 
                             stroke="#EF4444" 

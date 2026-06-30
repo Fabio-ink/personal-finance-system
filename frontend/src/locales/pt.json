@@ -75,7 +75,13 @@
     "totalSpent": "Total Gasto",
     "income": "Receitas",
     "plannedBudget": "Orçamento Planejado",
-    "percentageSpent": "Percentual Gasto"
+    "percentageSpent": "Percentual Gasto",
+    "week": "1 Semana",
+    "month": "1 Mês",
+    "year": "1 Ano",
+    "max": "Máximo",
+    "expenses": "Despesas",
+    "transfers": "Transferências"
   },
   "transactions": {
     "title": "Todas as Transações",
@@ -175,7 +181,14 @@
     "title": "Gerenciar Categorias",
     "name": "Nome da Categoria",
     "placeholderName": "ex: Alimentação, Investimentos",
-    "noCategories": "Nenhuma categoria encontrada. Adicione uma usando o formulário acima."
+    "noCategories": "Nenhuma categoria encontrada. Adicione uma usando o formulário acima.",
+    "food": "Alimentação",
+    "transport": "Transporte",
+    "entertainment": "Entretenimento",
+    "housing": "Moradia",
+    "health": "Saúde",
+    "education": "Educação",
+    "others": "Outros"
   },
   "months": {
     "1": "Janeiro",
@@ -190,5 +203,22 @@
     "10": "Outubro",
     "11": "Novembro",
     "12": "Dezembro"
+  },
+  "reports": {
+    "title": "Relatórios Financeiros",
+    "totalIncome": "Total de Receitas",
+    "totalExpense": "Total de Despesas",
+    "netBalance": "Saldo Líquido",
+    "distribution": "Distribuição de Despesas por Categoria",
+    "trends": "Tendência de Receitas vs Despesas (Últimos 6 meses)",
+    "budgetProgress": "Progresso do Orçamento Mensal",
+    "category": "Categoria",
+    "spent": "Gasto",
+    "budget": "Orçamento",
+    "average": "Média (Últimos 3 Meses)",
+    "status": "Status",
+    "withinLimit": "Dentro do Limite",
+    "exceeded": "Excedeu o Limite",
+    "noData": "Sem dados suficientes para gerar relatórios neste período."
   }
 }

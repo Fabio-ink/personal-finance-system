@@ -103,7 +103,7 @@ function CategoriesPage() {
                   <Card key={cat.id} className={`flex justify-between items-center p-3 ${selectedCategories.has(cat.id) ? 'bg-blue-100 dark:bg-blue-900' : ''}`}>
                     <div className="flex items-center">
                         <Checkbox id={`category-${cat.id}`} checked={selectedCategories.has(cat.id)} onChange={() => handleSelect(cat.id)} />
-                        <span className="font-semibold text-gray-800 dark:text-gray-200 ml-2">{cat.name}</span>
+                        <span className="font-semibold text-gray-800 dark:text-gray-200 ml-2">{t(`categories.${cat.name.toLowerCase()}`, cat.name)}</span>
                     </div>
                     <div className="flex space-x-2">
                       <Button onClick={() => handleEdit(cat)} variant="warning" size="sm">{t('common.edit')}</Button>

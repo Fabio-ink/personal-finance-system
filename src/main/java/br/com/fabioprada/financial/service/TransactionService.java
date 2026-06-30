@@ -38,17 +38,20 @@ public class TransactionService {
     private final CategoryRepository categoryRepository;
     private final AccountRepository accountRepository;
     private final br.com.fabioprada.financial.repository.MonthlyPlanningRepository monthlyPlanningRepository;
+    private final TransactionCategorizationService transactionCategorizationService;
 
     public TransactionService(TransactionRepository transactionRepository, UserContextService userContextService,
             ExcelService excelService,
             CategoryRepository categoryRepository, AccountRepository accountRepository,
-            br.com.fabioprada.financial.repository.MonthlyPlanningRepository monthlyPlanningRepository) {
+            br.com.fabioprada.financial.repository.MonthlyPlanningRepository monthlyPlanningRepository,
+            TransactionCategorizationService transactionCategorizationService) {
         this.transactionRepository = transactionRepository;
         this.userContextService = userContextService;
         this.excelService = excelService;
         this.categoryRepository = categoryRepository;
         this.accountRepository = accountRepository;
         this.monthlyPlanningRepository = monthlyPlanningRepository;
+        this.transactionCategorizationService = transactionCategorizationService;
     }
 
     public Page<Transaction> searchTransactions(String name, LocalDate startDate, LocalDate endDate, Long categoryId,
@@ -259,5 +262,73 @@ public class TransactionService {
                 transactionRepository.findByIdAndUserId(id, userId).ifPresent(transactionRepository::delete);
             }
         });
+    }
+
+    @Transactional
+    public List<Transaction> syncTransactions(List<br.com.fabioprada.financial.dto.TransactionSyncDTO> dtos) {
+        User user = userContextService.getCurrentUserOrThrow();
+        List<Transaction> saved = new ArrayList<>();
+
+        for (br.com.fabioprada.financial.dto.TransactionSyncDTO dto : dtos) {
+            boolean exists = transactionRepository.existsByNameAndAmountAndCreationDateAndUserId(
+                    dto.getName(), dto.getAmount(), dto.getCreationDate(), user.getId());
+            
+            if (exists) {
+                continue;
+            }
+
+            Transaction transaction = new Transaction();
+            transaction.setUser(user);
+            transaction.setName(dto.getName());
+            transaction.setAmount(dto.getAmount());
+            transaction.setCreationDate(dto.getCreationDate());
+            transaction.setTransactionType(dto.getTransactionType());
+            transaction.setInstallmentNumber(dto.getInstallmentNumber());
+            transaction.setTotalInstallments(dto.getTotalInstallments());
+
+            Category category;
+            if (dto.getCategoryName() != null && !dto.getCategoryName().trim().isEmpty()) {
+                String catName = dto.getCategoryName().trim();
+                category = categoryRepository.findByNameAndUserId(catName, user.getId())
+                        .orElseGet(() -> {
+                            Category newCat = new Category();
+                            newCat.setName(catName);
+                            newCat.setUser(user);
+                            return categoryRepository.save(newCat);
+                        });
+            } else {
+                category = transactionCategorizationService.categorize(dto.getName(), user);
+            }
+            transaction.setCategory(category);
+
+            if (dto.getInAccountName() != null && !dto.getInAccountName().trim().isEmpty()) {
+                String accName = dto.getInAccountName().trim();
+                Account inAcc = accountRepository.findByNameAndUserId(accName, user.getId())
+                        .orElseGet(() -> {
+                            Account newAcc = new Account();
+                            newAcc.setName(accName);
+                            newAcc.setUser(user);
+                            newAcc.setInitialBalance(BigDecimal.ZERO);
+                            return accountRepository.save(newAcc);
+                        });
+                transaction.setInAccount(inAcc);
+            }
+
+            if (dto.getOutAccountName() != null && !dto.getOutAccountName().trim().isEmpty()) {
+                String accName = dto.getOutAccountName().trim();
+                Account outAcc = accountRepository.findByNameAndUserId(accName, user.getId())
+                        .orElseGet(() -> {
+                            Account newAcc = new Account();
+                            newAcc.setName(accName);
+                            newAcc.setUser(user);
+                            newAcc.setInitialBalance(BigDecimal.ZERO);
+                            return accountRepository.save(newAcc);
+                        });
+                transaction.setOutAccount(outAcc);
+            }
+
+            saved.add(save(transaction));
+        }
+        return saved;
     }
 }

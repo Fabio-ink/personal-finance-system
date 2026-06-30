@@ -21,6 +21,86 @@ import api from '../services/api';
 import AccountForm from '../components/AccountForm';
 import AccountsListModal from '../components/AccountsListModal';
 import { format, subMonths, addMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { getLocalTransactions, getCachedAccounts, getCachedCategories } from '../services/db';
+
+const calculateLocalSummary = (transactions) => {
+  const getMonthData = (date) => {
+    const start = startOfMonth(date);
+    const end = endOfMonth(date);
+    
+    let totalIncome = 0;
+    let totalSpent = 0;
+    
+    transactions.forEach(t => {
+      const tDate = new Date(t.creationDate);
+      if (tDate >= start && tDate <= end) {
+        const amt = parseFloat(t.amount) || 0;
+        if (t.transactionType === 'INCOME') {
+          totalIncome += amt;
+        } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+          totalSpent += amt;
+        }
+      }
+    });
+
+    return { totalSpent, totalIncome, plannedBudget: 0 };
+  };
+
+  const currentMonth = new Date();
+  const previousMonth = subMonths(currentMonth, 1);
+  const previousMonth2 = subMonths(currentMonth, 2);
+  const nextMonth = addMonths(currentMonth, 1);
+
+  return {
+    previous2: getMonthData(previousMonth2),
+    previous: getMonthData(previousMonth),
+    current: getMonthData(currentMonth),
+    next: getMonthData(nextMonth)
+  };
+};
+
+const mergeSummaryWithLocalUnsynced = (serverSummary, localTransactions) => {
+  if (!serverSummary) return null;
+  const unsynced = localTransactions.filter(t => !t.synced);
+  if (unsynced.length === 0) return serverSummary;
+
+  const currentMonth = new Date();
+  const previousMonth = subMonths(currentMonth, 1);
+  const previousMonth2 = subMonths(currentMonth, 2);
+  const nextMonth = addMonths(currentMonth, 1);
+
+  const applyUnsyncedToMonth = (monthData, date) => {
+    const start = startOfMonth(date);
+    const end = endOfMonth(date);
+    let extraIncome = 0;
+    let extraSpent = 0;
+
+    unsynced.forEach(t => {
+      const tDate = new Date(t.creationDate);
+      if (tDate >= start && tDate <= end) {
+        const amt = parseFloat(t.amount) || 0;
+        if (t.transactionType === 'INCOME') {
+          extraIncome += amt;
+        } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+          extraSpent += amt;
+        }
+      }
+    });
+
+    return {
+      ...monthData,
+      totalIncome: (monthData?.totalIncome || 0) + extraIncome,
+      totalSpent: (monthData?.totalSpent || 0) + extraSpent
+    };
+  };
+
+  return {
+    previous2: applyUnsyncedToMonth(serverSummary.previous2, previousMonth2),
+    previous: applyUnsyncedToMonth(serverSummary.previous, previousMonth),
+    current: applyUnsyncedToMonth(serverSummary.current, currentMonth),
+    next: applyUnsyncedToMonth(serverSummary.next, nextMonth)
+  };
+};
 
 function DashboardPage() {
   const { t, i18n } = useTranslation();
@@ -57,23 +137,48 @@ function DashboardPage() {
 
   const fetchAllData = useCallback(async () => {
     try {
-      setLoading(true);
+      const localTrans = await getLocalTransactions().catch(() => []);
+      const cachedAccounts = await getCachedAccounts().catch(() => []);
+      const cachedCategories = await getCachedCategories().catch(() => []);
+
+      if (localTrans && localTrans.length > 0) {
+        setAllTransactions(localTrans.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)));
+      }
+      if (cachedAccounts && cachedAccounts.length > 0) {
+        setAccounts(cachedAccounts);
+      }
+      if (cachedCategories && cachedCategories.length > 0) {
+        setCategories(cachedCategories);
+      }
+
+      const localSummary = calculateLocalSummary(localTrans);
+      setMonthlySummary(localSummary);
+
       const [summaryRes, transRes, accountsRes, categoriesRes] = await Promise.all([
         api.get('/dashboard/summary'), 
         api.get('/transactions?size=2000'),     
         api.get('/accounts'),         
         api.get('/categories')        
       ]);
+
+      const serverTransactions = transRes.data.content || [];
+      const { saveLocalTransaction } = await import('../services/db');
+      for (const item of serverTransactions) {
+        await saveLocalTransaction({ ...item, synced: true });
+      }
+
+      const consolidatedTrans = await getLocalTransactions();
+      setAllTransactions(consolidatedTrans.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)));
       
-      setMonthlySummary(summaryRes.data);
-      setAllTransactions(transRes.data.content || []);
       setAccounts(accountsRes.data);
       setCategories(categoriesRes.data);
+
+      const finalSummary = mergeSummaryWithLocalUnsynced(summaryRes.data, consolidatedTrans);
+      setMonthlySummary(finalSummary);
 
       setError(null);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      setError(t('common.error'));
     } finally {
       setLoading(false);
     }

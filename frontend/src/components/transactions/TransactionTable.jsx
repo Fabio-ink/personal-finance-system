@@ -55,7 +55,7 @@ const TransactionTable = ({
                                         </p>
                                     </td>
                                     <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
-                                        <p className="text-gray-900 dark:text-gray-200 whitespace-no-wrap">{transaction.category?.name || 'N/A'}</p>
+                                         <p className="text-gray-900 dark:text-gray-200 whitespace-no-wrap">{transaction.category?.name ? t(`categories.${transaction.category.name.toLowerCase()}`, transaction.category.name) : 'N/A'}</p>
                                     </td>
                                     <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
                                         <p className="text-gray-900 dark:text-gray-200 whitespace-no-wrap">{transaction.outAccount?.name || transaction.inAccount?.name || 'N/A'}</p>

@@ -29,7 +29,7 @@ function TransactionList({ transactions, onEdit, onDelete }) {
                         
                         <div>
                             <p className="font-semibold text-white">{transaction.name}</p>
-                            <p className="text-xs text-text-secondary">{formatDate(transaction.creationDate)} • {transaction.category?.name || t('transactions.form.selectCategory')}</p>
+                            <p className="text-xs text-text-secondary">{formatDate(transaction.creationDate)} • {transaction.category?.name ? t(`categories.${transaction.category.name.toLowerCase()}`, transaction.category.name) : t('transactions.form.selectCategory')}</p>
                         </div>
                     </div>
 

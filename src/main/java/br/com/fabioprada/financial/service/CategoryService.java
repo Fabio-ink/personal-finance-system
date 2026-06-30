@@ -18,10 +18,17 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final UserContextService userContextService;
+    private final br.com.fabioprada.financial.repository.TransactionRepository transactionRepository;
+    private final br.com.fabioprada.financial.repository.MonthlyPlanningRepository monthlyPlanningRepository;
 
-    public CategoryService(CategoryRepository categoryRepository, UserContextService userContextService) {
+    public CategoryService(CategoryRepository categoryRepository, 
+                           UserContextService userContextService,
+                           br.com.fabioprada.financial.repository.TransactionRepository transactionRepository,
+                           br.com.fabioprada.financial.repository.MonthlyPlanningRepository monthlyPlanningRepository) {
         this.categoryRepository = categoryRepository;
         this.userContextService = userContextService;
+        this.transactionRepository = transactionRepository;
+        this.monthlyPlanningRepository = monthlyPlanningRepository;
     }
 
     public List<Category> findAll() {
@@ -42,16 +49,25 @@ public class CategoryService {
     }
 
     public void deleteById(Long id) {
-        userContextService.getCurrentUser().ifPresent(user -> categoryRepository.findByIdAndUserId(id, user.getId())
-                .ifPresent(categoryRepository::delete));
+        userContextService.getCurrentUser().ifPresent(user -> {
+            Long userId = user.getId();
+            categoryRepository.findByIdAndUserId(id, userId).ifPresent(category -> {
+                transactionRepository.deselectCategory(id, userId);
+                monthlyPlanningRepository.deleteByCategoryIdAndUserId(id, userId);
+                categoryRepository.delete(category);
+            });
+        });
     }
 
     public void deleteMultiple(List<Long> ids) {
         userContextService.getCurrentUser().ifPresent(user -> {
             Long userId = user.getId();
             for (Long id : ids) {
-                categoryRepository.findByIdAndUserId(id, userId)
-                        .ifPresent(categoryRepository::delete);
+                categoryRepository.findByIdAndUserId(id, userId).ifPresent(category -> {
+                    transactionRepository.deselectCategory(id, userId);
+                    monthlyPlanningRepository.deleteByCategoryIdAndUserId(id, userId);
+                    categoryRepository.delete(category);
+                });
             }
         });
     }

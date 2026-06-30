@@ -19,4 +19,8 @@ public interface MonthlyPlanningRepository
     List<MonthlyPlanning> findAllByUserId(Long userId);
 
     void deleteByIdAndUserId(Long id, Long userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM MonthlyPlanning mp WHERE mp.category.id = :categoryId AND mp.user.id = :userId")
+    void deleteByCategoryIdAndUserId(@Param("categoryId") Long categoryId, @Param("userId") Long userId);
 }

@@ -23,9 +23,11 @@ import java.io.ByteArrayInputStream;
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final br.com.fabioprada.financial.service.OfxParserService ofxParserService;
 
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService, br.com.fabioprada.financial.service.OfxParserService ofxParserService) {
         this.transactionService = transactionService;
+        this.ofxParserService = ofxParserService;
     }
 
     @GetMapping
@@ -103,5 +105,21 @@ public class TransactionController {
     public ResponseEntity<?> importTransactions(@RequestParam("file") MultipartFile file) {
         transactionService.importTransactions(file);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/sync")
+    public ResponseEntity<List<Transaction>> sync(@RequestBody List<br.com.fabioprada.financial.dto.TransactionSyncDTO> transactions) {
+        List<Transaction> synced = transactionService.syncTransactions(transactions);
+        return ResponseEntity.ok(synced);
+    }
+
+    @PostMapping("/parse-ofx")
+    public ResponseEntity<List<br.com.fabioprada.financial.dto.OfxTransactionDTO>> parseOfx(@RequestParam("file") MultipartFile file) {
+        try {
+            List<br.com.fabioprada.financial.dto.OfxTransactionDTO> parsed = ofxParserService.parseOfx(file.getInputStream());
+            return ResponseEntity.ok(parsed);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }

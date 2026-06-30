@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/auth/forgot-password").permitAll()
                         .requestMatchers("/api/auth/reset-password").permitAll()
+                        .requestMatchers("/api/notifications/monthly-alert").permitAll()
                         .requestMatchers("/api/accounts/**").hasRole("USER")
                         .requestMatchers("/api/categories/**").hasRole("USER")
                         .requestMatchers("/api/transactions/**").hasRole("USER")
@@ -55,8 +56,11 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(
-                Arrays.asList("http://localhost:5173", "https://personal-finance-system-sigma.vercel.app"));
+        java.util.List<String> allowedOrigins = corsProperties.getAllowedOrigins();
+        if (allowedOrigins == null || allowedOrigins.isEmpty()) {
+            allowedOrigins = Arrays.asList("http://localhost:5173", "http://localhost:5174");
+        }
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
