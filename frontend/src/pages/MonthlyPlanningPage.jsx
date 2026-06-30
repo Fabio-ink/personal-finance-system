@@ -107,10 +107,11 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
     };
 
     const handleSubmit = async (formData) => {
+        const selectedCat = categories.find(c => String(c.id) === String(formData.categoryId));
         const planningData = {
             month: parseInt(formData.month),
             year: parseInt(formData.year),
-            category: formData.categoryId ? { id: parseInt(formData.categoryId) } : null,
+            category: selectedCat ? { id: selectedCat.id, name: selectedCat.name } : null,
             estimatedAmount: parseFloat(formData.estimatedAmount)
         };
 

@@ -6,12 +6,14 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [isLocalMode, setIsLocalMode] = useState(localStorage.getItem('isLocalMode') === 'true');
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token || localStorage.getItem('isLocalMode') === 'true');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
+    const storedLocalMode = localStorage.getItem('isLocalMode') === 'true';
     if (storedToken) {
       try {
         api.defaults.headers.Authorization = `Bearer ${storedToken}`;
@@ -23,6 +25,10 @@ export const AuthProvider = ({ children }) => {
         console.error("Token inválido ou expirado", error);
         logout();
       }
+    } else if (storedLocalMode) {
+      setIsLocalMode(true);
+      setUser({ name: 'Local User', email: 'local@syncwallet.com' });
+      setIsAuthenticated(true);
     }
     setIsLoading(false);
   }, []);
@@ -31,6 +37,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', data.token);
+      localStorage.removeItem('isLocalMode');
+      setIsLocalMode(false);
       api.defaults.headers.Authorization = `Bearer ${data.token}`;
       
       const decodedUser = jwtDecode(data.token);
@@ -55,14 +63,28 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('isLocalMode');
     delete api.defaults.headers.Authorization;
     setToken(null);
     setUser(null);
+    setIsLocalMode(false);
     setIsAuthenticated(false);
+  };
+
+  const enterLocalMode = () => {
+    localStorage.setItem('isLocalMode', 'true');
+    localStorage.removeItem('token');
+    delete api.defaults.headers.Authorization;
+    setToken(null);
+    setIsLocalMode(true);
+    setUser({ name: 'Local User', email: 'local@syncwallet.com' });
+    setIsAuthenticated(true);
   };
 
   const updateUserToken = (newToken) => {
     localStorage.setItem('token', newToken);
+    localStorage.removeItem('isLocalMode');
+    setIsLocalMode(false);
     api.defaults.headers.Authorization = `Bearer ${newToken}`;
     const decodedUser = jwtDecode(newToken);
     setUser(decodedUser);
@@ -70,7 +92,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, isAuthenticated, isLoading, login, register, logout, updateUserToken }}>
+    <AuthContext.Provider value={{ token, user, isAuthenticated, isLoading, login, register, logout, updateUserToken, isLocalMode, enterLocalMode }}>
       {children}
     </AuthContext.Provider>
   );

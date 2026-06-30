@@ -3,8 +3,10 @@ import Input from './ui/Input';
 import Button from './ui/Button';
 import { createAccount, updateAccount } from '../services/api';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
 
 function AccountForm({ account, onSave, onCancel, onDelete }) {
+  const { isLocalMode } = useAuth();
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [initialBalance, setInitialBalance] = useState('');
@@ -27,7 +29,26 @@ function AccountForm({ account, onSave, onCancel, onDelete }) {
       const accountData = {
         name,
         initialBalance: parseFloat(initialBalance),
+        currentBalance: parseFloat(initialBalance)
       };
+
+      if (isLocalMode) {
+        const { getCachedAccounts, cacheAccounts } = await import('../services/db');
+        const cached = await getCachedAccounts();
+        if (account && account.id) {
+          const updated = cached.map(acc => acc.id === account.id ? { ...acc, ...accountData } : acc);
+          await cacheAccounts(updated);
+        } else {
+          const newAcc = {
+            ...accountData,
+            id: `local_${Date.now()}`
+          };
+          const updated = [...cached, newAcc];
+          await cacheAccounts(updated);
+        }
+        onSave();
+        return;
+      }
 
       if (account && account.id) {
         await updateAccount(account.id, accountData);

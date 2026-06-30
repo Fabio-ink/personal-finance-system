@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useCrud } from '../hooks/useCrud';
 import { useTransactionFilters } from '../hooks/useTransactionFilters';
 import { useToast } from '../hooks/useToast';
+import { useAuth } from '../contexts/AuthContext';
 import TransactionForm from '../components/TransactionForm';
 import Button from '../components/ui/Button';
 import PageTitle from '../components/ui/PageTitle';
@@ -21,6 +22,7 @@ import { syncOfflineTransactions } from '../services/syncService';
 
 function TransactionsPage() {
     const { t } = useTranslation();
+    const { isLocalMode } = useAuth();
     const { items: transactions, loading, error, addItem, updateItem, deleteMultipleItems, fetchItems, pagination } = useCrud('/transactions');
     const { items: categories, fetchItems: fetchCategories } = useCrud('/categories');
     const { items: accounts, fetchItems: fetchAccounts } = useCrud('/accounts');
@@ -155,6 +157,10 @@ function TransactionsPage() {
     }, [transactions]);
 
     const handleExport = async () => {
+        if (isLocalMode) {
+            addToast({ type: 'error', title: t('common.error'), message: 'A exportação de Excel não está disponível no Modo Local.' });
+            return;
+        }
         try {
             const response = await api.get('/transactions/export', {
                 params: getFilterParams(),
@@ -175,6 +181,11 @@ function TransactionsPage() {
     };
 
     const handleImport = async (e) => {
+        if (isLocalMode) {
+            addToast({ type: 'error', title: t('common.error'), message: 'A importação de Excel não está disponível no Modo Local.' });
+            e.target.value = '';
+            return;
+        }
         const file = e.target.files[0];
         if (!file) return;
 
@@ -227,14 +238,28 @@ function TransactionsPage() {
                     return;
                 }
 
-                const categorizeName = (name, cats) => {
+                const currentCategories = [...categories];
+                const newCategoriesToCreate = [];
+
+                const getOrCreateCategory = (catName) => {
+                    const existing = currentCategories.find(c => c.name.toLowerCase() === catName.toLowerCase());
+                    if (existing) return existing;
+
+                    const newCat = {
+                        id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        name: catName
+                    };
+                    currentCategories.push(newCat);
+                    newCategoriesToCreate.push(newCat);
+                    return newCat;
+                };
+
+                const categorizeName = (name) => {
                     const desc = name.toLowerCase();
                     
                     const matchedRule = customRules.find(rule => desc.includes(rule.keyword));
                     if (matchedRule) {
-                        const existing = cats.find(c => c.name.toLowerCase() === matchedRule.categoryName.toLowerCase());
-                        if (existing) return existing;
-                        return { name: matchedRule.categoryName };
+                        return getOrCreateCategory(matchedRule.categoryName);
                     }
 
                     let categoryName = "Others";
@@ -262,11 +287,7 @@ function TransactionsPage() {
                         categoryName = "Education";
                     }
                     
-                    const existing = cats.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
-                    if (existing) {
-                        return existing;
-                    }
-                    return { name: categoryName };
+                    return getOrCreateCategory(categoryName);
                 };
 
                 for (const t of parsedTransactions) {
@@ -277,7 +298,7 @@ function TransactionsPage() {
                     } else {
                         transWithAccount.inAccount = account;
                     }
-                    transWithAccount.category = categorizeName(t.name, categories);
+                    transWithAccount.category = categorizeName(t.name);
 
                     await saveLocalTransaction({
                         ...transWithAccount,
@@ -286,14 +307,23 @@ function TransactionsPage() {
                     });
                 }
 
+                if (newCategoriesToCreate.length > 0) {
+                    const { getCachedCategories, cacheCategories } = await import('../services/db');
+                    const cached = await getCachedCategories();
+                    const updated = [...cached, ...newCategoriesToCreate];
+                    await cacheCategories(updated);
+                }
+
                 addToast({ type: 'success', title: t('common.import'), message: `${parsedTransactions.length} transactions imported locally!` });
                 setIsOfxModalOpen(false);
                 setOfxFile(null);
                 setSelectedOfxAccountId('');
                 handleApplyFilters();
+                fetchCategories();
 
                 syncOfflineTransactions().then(() => {
                     handleApplyFilters();
+                    fetchCategories();
                 }).catch(() => {});
             } catch (error) {
                 console.error(error);

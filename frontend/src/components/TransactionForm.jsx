@@ -115,9 +115,9 @@ function TransactionForm({ transaction, onSave, onCancel, categories, accounts }
             amount: parseFloat(formData.amount),
             creationDate: formData.creationDate,
             transactionType: formData.transactionType,
-            category: formData.categoryId ? { id: parseInt(formData.categoryId) } : null,
-            outAccount: formData.outAccountId ? { id: parseInt(formData.outAccountId) } : null,
-            inAccount: formData.inAccountId ? { id: parseInt(formData.inAccountId) } : null,
+            category: formData.categoryId ? { id: String(formData.categoryId).startsWith('local_') ? formData.categoryId : parseInt(formData.categoryId) } : null,
+            outAccount: formData.outAccountId ? { id: String(formData.outAccountId).startsWith('local_') ? formData.outAccountId : parseInt(formData.outAccountId) } : null,
+            inAccount: formData.inAccountId ? { id: String(formData.inAccountId).startsWith('local_') ? formData.inAccountId : parseInt(formData.inAccountId) } : null,
             totalInstallments: formData.transactionType === 'CREDIT_CARD' ? parseInt(formData.totalInstallments) : 1
         };
         

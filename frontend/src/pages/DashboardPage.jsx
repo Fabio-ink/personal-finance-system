@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createTransaction, updateTransaction, deleteAccount } from '../services/api'; 
+import { useAuth } from '../contexts/AuthContext'; 
 import MonthSummaryCard from '../components/MonthSummaryCard';
 import TransactionChart from '../components/TransactionChart';
 import Card from '../components/ui/Card';
@@ -104,6 +105,7 @@ const mergeSummaryWithLocalUnsynced = (serverSummary, localTransactions) => {
 
 function DashboardPage() {
   const { t, i18n } = useTranslation();
+  const { isLocalMode } = useAuth();
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -154,6 +156,32 @@ function DashboardPage() {
       const localSummary = calculateLocalSummary(localTrans);
       setMonthlySummary(localSummary);
 
+      if (isLocalMode) {
+        const calculatedAccounts = cachedAccounts.map(acc => {
+          let balance = acc.initialBalance || 0;
+          localTrans.forEach(t => {
+            const amt = parseFloat(t.amount) || 0;
+            const inId = t.inAccount?.id || t.inAccountId;
+            const outId = t.outAccount?.id || t.outAccountId;
+
+            if (t.transactionType === 'INCOME') {
+              if (String(inId) === String(acc.id)) balance += amt;
+            } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+              if (String(outId) === String(acc.id)) balance -= amt;
+            } else if (t.transactionType === 'TRANSFER') {
+              if (String(inId) === String(acc.id)) balance += amt;
+              if (String(outId) === String(acc.id)) balance -= amt;
+            }
+          });
+          return { ...acc, currentBalance: balance };
+        });
+        setAccounts(calculatedAccounts);
+
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
       const [summaryRes, transRes, accountsRes, categoriesRes] = await Promise.all([
         api.get('/dashboard/summary'), 
         api.get('/transactions?size=2000'),     
@@ -182,7 +210,7 @@ function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isLocalMode]);
 
   useEffect(() => {
     fetchAllData();
@@ -220,6 +248,18 @@ function DashboardPage() {
 
   const handleSaveTransaction = useCallback(async (transactionData) => {
     try {
+      if (isLocalMode) {
+        const { saveLocalTransaction } = await import('../services/db');
+        if (transactionToEdit && transactionToEdit.id) {
+          await saveLocalTransaction({ ...transactionData, id: transactionToEdit.id, synced: false });
+        } else {
+          await saveLocalTransaction({ ...transactionData, id: `local_${Date.now()}`, synced: false });
+        }
+        handleCloseModal();
+        fetchAllData();
+        return;
+      }
+
       if (transactionToEdit && transactionToEdit.id) {
         await updateTransaction(transactionToEdit.id, transactionData);
       } else {
@@ -230,7 +270,7 @@ function DashboardPage() {
     } catch (error) {
       console.error("Error saving transaction", error);
     }
-  }, [transactionToEdit, handleCloseModal, fetchAllData]);
+  }, [transactionToEdit, handleCloseModal, fetchAllData, isLocalMode]);
 
   const handleSaveAccount = useCallback(() => {
     handleCloseAccountForm();
@@ -239,6 +279,16 @@ function DashboardPage() {
 
   const handleDeleteAccount = useCallback(async (accountId) => {
     try {
+        if (isLocalMode) {
+          const { getCachedAccounts, cacheAccounts } = await import('../services/db');
+          const cached = await getCachedAccounts();
+          const updated = cached.filter(acc => acc.id !== accountId);
+          await cacheAccounts(updated);
+          handleCloseAccountForm();
+          fetchAllData();
+          return;
+        }
+
         await deleteAccount(accountId);
         handleCloseAccountForm();
         fetchAllData();
@@ -246,7 +296,7 @@ function DashboardPage() {
         console.error("Error deleting account", error);
         alert(t('dashboard.deleteAccountConfirm'));
     }
-  }, [handleCloseAccountForm, fetchAllData]);
+  }, [handleCloseAccountForm, fetchAllData, isLocalMode]);
 
   const handleMonthTitleClick = (date) => {
     const startDate = format(startOfMonth(date), 'yyyy-MM-dd');
@@ -419,6 +469,12 @@ function DashboardPage() {
                     onDelete={async (transaction) => {
                         if (window.confirm(t('dashboard.deleteTransactionConfirm'))) {
                             try {
+                                if (isLocalMode) {
+                                  const { deleteLocalTransaction } = await import('../services/db');
+                                  await deleteLocalTransaction(transaction.id);
+                                  fetchAllData();
+                                  return;
+                                }
                                 await api.delete(`/transactions/${transaction.id}`);
                                 fetchAllData();
                             } catch (error) {

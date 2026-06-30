@@ -1,5 +1,5 @@
 const DB_NAME = 'syncwallet_db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export function openDb() {
   return new Promise((resolve, reject) => {
@@ -21,6 +21,9 @@ export function openDb() {
       }
       if (!db.objectStoreNames.contains('rules')) {
         db.createObjectStore('rules', { keyPath: 'keyword' });
+      }
+      if (!db.objectStoreNames.contains('planning')) {
+        db.createObjectStore('planning', { keyPath: 'id' });
       }
     };
   });
@@ -150,6 +153,29 @@ export async function getCategorizationRules() {
   return new Promise((resolve, reject) => {
     const transactionObj = db.transaction(['rules'], 'readonly');
     const store = transactionObj.objectStore('rules');
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+export async function cachePlanning(planningEntries) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transactionObj = db.transaction(['planning'], 'readwrite');
+    const store = transactionObj.objectStore('planning');
+    store.clear();
+    planningEntries.forEach(entry => store.put(entry));
+    transactionObj.oncomplete = () => resolve();
+    transactionObj.onerror = (event) => reject(event.target.error);
+  });
+}
+
+export async function getCachedPlanning() {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transactionObj = db.transaction(['planning'], 'readonly');
+    const store = transactionObj.objectStore('planning');
     const request = store.getAll();
     request.onsuccess = () => resolve(request.result);
     request.onerror = (event) => reject(event.target.error);

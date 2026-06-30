@@ -5,6 +5,8 @@ import PageTitle from '../components/ui/PageTitle';
 import Button from '../components/ui/Button';
 import Select from '../components/ui/Select';
 import { formatCurrency } from '../utils/dateUtils';
+import { getLocalTransactions } from '../services/db';
+import { useAuth } from '../contexts/AuthContext';
 import {
   BarChart,
   Bar,
@@ -21,8 +23,135 @@ import {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#6b7280'];
 
+const calculateLocalReport = (transactions, planning, categories, month, year) => {
+  const currentMonthTx = transactions.filter(t => {
+    const d = new Date(t.creationDate);
+    return d.getMonth() + 1 === month && d.getFullYear() === year;
+  });
+
+  let totalIncome = 0;
+  let totalExpense = 0;
+  const categoryExpenses = {};
+
+  currentMonthTx.forEach(t => {
+    const amt = parseFloat(t.amount) || 0;
+    if (t.transactionType === 'INCOME') {
+      totalIncome += amt;
+    } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+      totalExpense += amt;
+      const catName = t.category?.name || t.categoryName || 'Outros';
+      categoryExpenses[catName] = (categoryExpenses[catName] || 0) + amt;
+    }
+  });
+
+  const mappedPlanning = planning.map(p => {
+    if (p.category && !p.category.name) {
+      const cat = categories.find(c => String(c.id) === String(p.category.id));
+      if (cat) {
+        return { ...p, category: { ...p.category, name: cat.name } };
+      }
+    }
+    return p;
+  });
+
+  const allCategoryNames = new Set([
+    ...Object.keys(categoryExpenses),
+    ...mappedPlanning
+      .filter(p => p.month === month && p.year === year && p.category?.name)
+      .map(p => p.category.name)
+  ]);
+
+  const categoryReports = Array.from(allCategoryNames).map(catName => {
+    let sumPast = 0;
+    let countPast = 0;
+
+    for (let i = 1; i <= 3; i++) {
+      let pastMonth = month - i;
+      let pastYear = year;
+      if (pastMonth <= 0) {
+        pastMonth += 12;
+        pastYear -= 1;
+      }
+
+      const pastTx = transactions.filter(t => {
+        const d = new Date(t.creationDate);
+        return d.getMonth() + 1 === pastMonth && d.getFullYear() === pastYear;
+      });
+
+      let spentPastMonth = 0;
+      pastTx.forEach(t => {
+        if ((t.category?.name === catName || t.categoryName === catName) &&
+            (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD')) {
+          spentPastMonth += parseFloat(t.amount) || 0;
+        }
+      });
+
+      if (spentPastMonth > 0) {
+        sumPast += spentPastMonth;
+      }
+      countPast++;
+    }
+
+    const avg = countPast > 0 ? parseFloat((sumPast / countPast).toFixed(2)) : 0;
+
+    const matchedPlan = mappedPlanning.find(p => 
+      p.month === month && 
+      p.year === year && 
+      (p.category?.name?.toLowerCase() === catName.toLowerCase() || p.categoryName?.toLowerCase() === catName.toLowerCase())
+    );
+
+    return {
+      categoryName: catName,
+      spentAmount: categoryExpenses[catName] || 0,
+      plannedAmount: matchedPlan ? parseFloat(matchedPlan.estimatedAmount) || 0 : 0,
+      averageSpentPastMonths: avg
+    };
+  });
+
+  const monthlyTrends = [];
+  for (let i = 5; i >= 0; i--) {
+    let targetMonth = month - i;
+    let targetYear = year;
+    if (targetMonth <= 0) {
+      targetMonth += 12;
+      targetYear -= 1;
+    }
+
+    const mTx = transactions.filter(t => {
+      const d = new Date(t.creationDate);
+      return d.getMonth() + 1 === targetMonth && d.getFullYear() === targetYear;
+    });
+
+    let inc = 0;
+    let exp = 0;
+    mTx.forEach(t => {
+      const amt = parseFloat(t.amount) || 0;
+      if (t.transactionType === 'INCOME') {
+        inc += amt;
+      } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+        exp += amt;
+      }
+    });
+
+    const monthName = `${String(targetMonth).padStart(2, '0')}/${targetYear}`;
+    monthlyTrends.push({
+      monthName,
+      income: inc,
+      expense: exp
+    });
+  }
+
+  return {
+    totalIncome,
+    totalExpense,
+    categoryReports,
+    monthlyTrends
+  };
+};
+
 function ReportsPage() {
   const { t } = useTranslation();
+  const { isLocalMode } = useAuth();
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [data, setData] = useState(null);
@@ -32,6 +161,18 @@ function ReportsPage() {
   const fetchReport = async () => {
     try {
       setLoading(true);
+
+      if (isLocalMode) {
+        const { getCachedPlanning, getCachedCategories } = await import('../services/db');
+        const localTrans = await getLocalTransactions().catch(() => []);
+        const localPlanning = await getCachedPlanning().catch(() => []);
+        const localCategories = await getCachedCategories().catch(() => []);
+        const report = calculateLocalReport(localTrans, localPlanning, localCategories, month, year);
+        setData(report);
+        setError(null);
+        return;
+      }
+
       const response = await api.get('/reports', {
         params: { month, year }
       });
@@ -47,7 +188,7 @@ function ReportsPage() {
 
   useEffect(() => {
     fetchReport();
-  }, [month, year]);
+  }, [month, year, isLocalMode]);
 
   const netBalance = data ? data.totalIncome - data.totalExpense : 0;
 
@@ -296,14 +437,14 @@ function ReportsPage() {
                           </td>
                           <td className="py-4 px-4">
                             {hasBudget ? (
-                              <div className="flex flex-col gap-1 w-48">
-                                <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+                              <div className="flex flex-col gap-1.5 w-56">
+                                <div className="w-full bg-gray-700 h-3 rounded-full overflow-hidden">
                                   <div
                                     className={`h-full rounded-full transition-all duration-300 ${exceeded ? 'bg-red-500' : 'bg-green-500'}`}
                                     style={{ width: `${Math.min(ratio, 100)}%` }}
                                   ></div>
                                 </div>
-                                <span className={`text-xs font-semibold ${exceeded ? 'text-red-500' : 'text-green-500'}`}>
+                                <span className={`text-sm font-semibold ${exceeded ? 'text-red-500' : 'text-green-500'}`}>
                                   {exceeded
                                     ? `${t('reports.exceeded')} (${(ratio - 100).toFixed(0)}%+)`
                                     : `${t('reports.withinLimit')} (${ratio.toFixed(0)}%)`}

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import {
   saveLocalTransaction,
   getLocalTransactions,
@@ -16,6 +17,7 @@ export function useCrud(endpoint) {
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { isLocalMode } = useAuth();
 
   const fetchItems = useCallback(async (params = {}) => {
     try {
@@ -23,19 +25,68 @@ export function useCrud(endpoint) {
 
       if (endpoint === '/transactions') {
         const localData = await getLocalTransactions();
-        if (localData && localData.length > 0) {
-          setItems(localData.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)));
-        }
+        setItems(localData.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)));
       } else if (endpoint === '/accounts') {
         const cached = await getCachedAccounts();
-        if (cached && cached.length > 0) {
+        if (isLocalMode) {
+          const txs = await getLocalTransactions();
+          const calculated = cached.map(acc => {
+            let balance = acc.initialBalance || 0;
+            txs.forEach(t => {
+              const amt = parseFloat(t.amount) || 0;
+              const inId = t.inAccount?.id || t.inAccountId;
+              const outId = t.outAccount?.id || t.outAccountId;
+
+              if (t.transactionType === 'INCOME') {
+                if (String(inId) === String(acc.id)) balance += amt;
+              } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+                if (String(outId) === String(acc.id)) balance -= amt;
+              } else if (t.transactionType === 'TRANSFER') {
+                if (String(inId) === String(acc.id)) balance += amt;
+                if (String(outId) === String(acc.id)) balance -= amt;
+              }
+            });
+            return { ...acc, currentBalance: balance };
+          });
+          setItems(calculated);
+        } else {
           setItems(cached);
         }
       } else if (endpoint === '/categories') {
         const cached = await getCachedCategories();
-        if (cached && cached.length > 0) {
-          setItems(cached);
+        setItems(cached);
+      } else if (endpoint === '/monthly-planning') {
+        const { getCachedPlanning } = await import('../services/db');
+        const cached = await getCachedPlanning();
+        setItems(cached);
+      }
+
+      if (isLocalMode) {
+        if (endpoint === '/monthly-planning') {
+          const { getCachedPlanning, getLocalTransactions } = await import('../services/db');
+          const cached = await getCachedPlanning();
+          const txs = await getLocalTransactions();
+          const calculated = cached.map(entry => {
+            let spent = 0;
+            txs.forEach(t => {
+              const d = new Date(t.creationDate);
+              const tMonth = d.getMonth() + 1;
+              const tYear = d.getFullYear();
+              if (tMonth === entry.month && tYear === entry.year) {
+                const catId = t.category?.id || t.categoryId;
+                const isExpense = t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD';
+                if (isExpense && String(catId) === String(entry.category?.id)) {
+                  spent += parseFloat(t.amount) || 0;
+                }
+              }
+            });
+            return { ...entry, spentAmount: spent };
+          });
+          setItems(calculated);
         }
+        setError(null);
+        setLoading(false);
+        return;
       }
 
       const response = await api.get(endpoint, { params });
@@ -90,7 +141,7 @@ export function useCrud(endpoint) {
     } finally {
       setLoading(false);
     }
-  }, [endpoint]);
+  }, [endpoint, isLocalMode]);
 
   const addItem = useCallback(async (itemData) => {
     try {
@@ -112,6 +163,11 @@ export function useCrud(endpoint) {
           }
         }
 
+        if (isLocalMode) {
+          setError(null);
+          return null;
+        }
+
         api.post(endpoint, itemData).then(async (response) => {
           await deleteLocalTransaction(tempId);
           await saveLocalTransaction({ ...response.data, synced: true });
@@ -123,6 +179,32 @@ export function useCrud(endpoint) {
         setError(null);
         return null;
       } else {
+        if (isLocalMode) {
+          const localItem = {
+            ...itemData,
+            id: `local_${Date.now()}`
+          };
+          if (endpoint === '/accounts') {
+            const cached = await getCachedAccounts();
+            const updated = [...cached, localItem];
+            await cacheAccounts(updated);
+            setItems(updated);
+          } else if (endpoint === '/categories') {
+            const cached = await getCachedCategories();
+            const updated = [...cached, localItem];
+            await cacheCategories(updated);
+            setItems(updated);
+          } else if (endpoint === '/monthly-planning') {
+            const { getCachedPlanning, cachePlanning } = await import('../services/db');
+            const cached = await getCachedPlanning();
+            const updated = [...cached, localItem];
+            await cachePlanning(updated);
+            setItems(updated);
+          }
+          setError(null);
+          return null;
+        }
+
         const response = await api.post(endpoint, itemData);
         setItems(prevItems => [...prevItems, response.data]);
         setError(null);
@@ -134,7 +216,7 @@ export function useCrud(endpoint) {
       setError(errorMessage);
       return errorMessage;
     }
-  }, [endpoint]);
+  }, [endpoint, isLocalMode]);
 
   const updateItem = useCallback(async (id, itemData) => {
     try {
@@ -151,6 +233,11 @@ export function useCrud(endpoint) {
           }
         }
 
+        if (isLocalMode) {
+          setError(null);
+          return null;
+        }
+
         api.put(`${endpoint}/${id}`, itemData).then(async (response) => {
           await saveLocalTransaction({ ...response.data, synced: true });
           setItems(prevItems => prevItems.map(item => item.id === id ? { ...response.data, synced: true } : item));
@@ -160,7 +247,31 @@ export function useCrud(endpoint) {
 
         setError(null);
         return null;
+
       } else {
+        if (isLocalMode) {
+          const localItem = { ...itemData, id };
+          if (endpoint === '/accounts') {
+            const cached = await getCachedAccounts();
+            const updated = cached.map(item => item.id === id ? localItem : item);
+            await cacheAccounts(updated);
+            setItems(updated);
+          } else if (endpoint === '/categories') {
+            const cached = await getCachedCategories();
+            const updated = cached.map(item => item.id === id ? localItem : item);
+            await cacheCategories(updated);
+            setItems(updated);
+          } else if (endpoint === '/monthly-planning') {
+            const { getCachedPlanning, cachePlanning } = await import('../services/db');
+            const cached = await getCachedPlanning();
+            const updated = cached.map(item => item.id === id ? localItem : item);
+            await cachePlanning(updated);
+            setItems(updated);
+          }
+          setError(null);
+          return null;
+        }
+
         const response = await api.put(`${endpoint}/${id}`, itemData);
         setItems(prevItems => prevItems.map(item => item.id === id ? response.data : item));
         setError(null);
@@ -172,7 +283,7 @@ export function useCrud(endpoint) {
       setError(errorMessage);
       return errorMessage;
     }
-  }, [endpoint]);
+  }, [endpoint, isLocalMode]);
 
   const deleteItem = useCallback(async (id) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
@@ -181,6 +292,11 @@ export function useCrud(endpoint) {
           await deleteLocalTransaction(id);
           setItems(prevItems => prevItems.filter(item => item.id !== id));
           
+          if (isLocalMode) {
+            setError(null);
+            return null;
+          }
+
           if (!String(id).startsWith('local_')) {
             api.delete(`${endpoint}/${id}`).catch(err => {
               console.warn('Delete on server failed:', err);
@@ -189,6 +305,28 @@ export function useCrud(endpoint) {
           setError(null);
           return null;
         } else {
+          if (isLocalMode) {
+            if (endpoint === '/accounts') {
+              const cached = await getCachedAccounts();
+              const updated = cached.filter(item => item.id !== id);
+              await cacheAccounts(updated);
+              setItems(updated);
+            } else if (endpoint === '/categories') {
+              const cached = await getCachedCategories();
+              const updated = cached.filter(item => item.id !== id);
+              await cacheCategories(updated);
+              setItems(updated);
+            } else if (endpoint === '/monthly-planning') {
+              const { getCachedPlanning, cachePlanning } = await import('../services/db');
+              const cached = await getCachedPlanning();
+              const updated = cached.filter(item => item.id !== id);
+              await cachePlanning(updated);
+              setItems(updated);
+            }
+            setError(null);
+            return null;
+          }
+
           await api.delete(`${endpoint}/${id}`);
           setItems(prevItems => prevItems.filter(item => item.id !== id));
           setError(null);
@@ -202,7 +340,7 @@ export function useCrud(endpoint) {
       }
     }
     return null;
-  }, [endpoint]);
+  }, [endpoint, isLocalMode]);
 
   const deleteMultipleItems = useCallback(async (ids) => {
     if (window.confirm(`Are you sure you want to delete ${ids.length} items?`)) {
@@ -217,6 +355,10 @@ export function useCrud(endpoint) {
           }
           setItems(prevItems => prevItems.filter(item => !ids.includes(item.id)));
 
+          if (isLocalMode) {
+            return null;
+          }
+
           if (serverIds.length > 0) {
             api.post(`${endpoint}/delete-multiple`, serverIds).catch(err => {
               console.warn('Bulk delete on server failed:', err);
@@ -224,6 +366,27 @@ export function useCrud(endpoint) {
           }
           return null;
         } else {
+          if (isLocalMode) {
+            if (endpoint === '/accounts') {
+              const cached = await getCachedAccounts();
+              const updated = cached.filter(item => !ids.includes(item.id));
+              await cacheAccounts(updated);
+              setItems(updated);
+            } else if (endpoint === '/categories') {
+              const cached = await getCachedCategories();
+              const updated = cached.filter(item => !ids.includes(item.id));
+              await cacheCategories(updated);
+              setItems(updated);
+            } else if (endpoint === '/monthly-planning') {
+              const { getCachedPlanning, cachePlanning } = await import('../services/db');
+              const cached = await getCachedPlanning();
+              const updated = cached.filter(item => !ids.includes(item.id));
+              await cachePlanning(updated);
+              setItems(updated);
+            }
+            return null;
+          }
+
           await api.post(`${endpoint}/delete-multiple`, ids);
           setItems(prevItems => prevItems.filter(item => !ids.includes(item.id)));
           return null;
@@ -234,7 +397,7 @@ export function useCrud(endpoint) {
       }
     }
     return null;
-  }, [endpoint]);
+  }, [endpoint, isLocalMode]);
 
   return { items, loading, error, addItem, updateItem, deleteItem, deleteMultipleItems, fetchItems, pagination };
 }
