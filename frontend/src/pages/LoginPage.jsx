@@ -129,8 +129,13 @@ const LoginPage = () => {
           <p className="text-gray-300 text-base leading-relaxed">
             Ao utilizar o Modo Local, seus dados financeiros serão armazenados <strong>exclusivamente no cache do seu navegador (IndexedDB)</strong>.
           </p>
-          <div className="bg-red-500/10 border border-red-500/25 p-4 rounded-xl text-sm text-red-400 leading-relaxed">
-            <strong>⚠️ Risco de perda de dados:</strong> Se você limpar o histórico do navegador, apagar os cookies/dados de sites, ou se utilizar uma janela de navegação anônima, todos os seus dados serão apagados permanentemente sem possibilidade de recuperação.
+          <div className="bg-red-500/10 border border-red-500/25 p-4 rounded-xl text-sm text-red-400 leading-relaxed space-y-2">
+            <div>
+              <strong>⚠️ Risco de perda de dados:</strong> Se você limpar o histórico do navegador, apagar os cookies/dados de sites, ou utilizar uma janela de navegação anônima, todos os seus dados serão apagados permanentemente.
+            </div>
+            <div>
+              <strong>ℹ️ Nota sobre login/cadastro:</strong> Se você realizar o cadastro de uma nova conta ou fizer login em uma conta na nuvem futuramente, os dados do Modo Local serão apagados deste navegador para garantir a segurança e o isolamento dos dados da sua conta.
+            </div>
           </div>
           <p className="text-gray-300 text-base leading-relaxed">
             Recomendamos fortemente criar uma conta gratuita para salvar suas informações com segurança na nuvem.

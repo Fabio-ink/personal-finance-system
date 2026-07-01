@@ -1,8 +1,10 @@
 package br.com.fabioprada.financial.service;
 
 import br.com.fabioprada.financial.model.User;
+import br.com.fabioprada.financial.model.Category;
 import br.com.fabioprada.financial.model.PasswordResetToken;
 import br.com.fabioprada.financial.repository.UserRepository;
+import br.com.fabioprada.financial.repository.CategoryRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,12 +17,15 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final br.com.fabioprada.financial.repository.PasswordResetTokenRepository passwordResetTokenRepository;
+    private final CategoryRepository categoryRepository;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            br.com.fabioprada.financial.repository.PasswordResetTokenRepository passwordResetTokenRepository) {
+            br.com.fabioprada.financial.repository.PasswordResetTokenRepository passwordResetTokenRepository,
+            CategoryRepository categoryRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
@@ -37,7 +42,34 @@ public class UserService implements UserDetailsService {
         user.setName(name);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // Initialize default categories
+        createDefaultCategories(savedUser);
+
+        return savedUser;
+    }
+
+    private void createDefaultCategories(User user) {
+        java.util.List<String> defaultCategories = java.util.List.of(
+            "Alimentação",
+            "Assinaturas",
+            "Investimentos",
+            "Transporte",
+            "Saúde",
+            "Lazer",
+            "Moradia",
+            "Educação",
+            "Outros"
+        );
+        for (String name : defaultCategories) {
+            if (categoryRepository.findByNameAndUserId(name, user.getId()).isEmpty()) {
+                Category category = new Category();
+                category.setName(name);
+                category.setUser(user);
+                categoryRepository.save(category);
+            }
+        }
     }
 
     public User updateUserName(String email, String newName) {

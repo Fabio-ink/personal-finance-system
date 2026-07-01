@@ -197,11 +197,49 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                     {planningEntries.length > 0 ? (
                         <div className="grid gap-4">
                             {planningEntries.map(entry => {
+                                const isInvestment = entry.category?.name?.toLowerCase() === 'investimentos';
                                 const spent = entry.spentAmount || 0;
                                 const planned = entry.estimatedAmount || 0;
                                 const remaining = planned - spent;
                                 const percentage = planned > 0 ? (spent / planned) * 100 : 0;
                                 const isOverBudget = spent > planned;
+
+                                // Calculate conditional colors
+                                let spentColorClass = 'text-white';
+                                let remainingColorClass = 'text-brand-success';
+                                let percentageColorClass = 'text-brand-primary';
+                                let progressBarColorClass = 'bg-brand-primary';
+
+                                if (isInvestment) {
+                                    if (isOverBudget) {
+                                        spentColorClass = 'text-brand-success';
+                                        remainingColorClass = 'text-brand-success';
+                                        percentageColorClass = 'text-brand-success';
+                                        progressBarColorClass = 'bg-brand-success';
+                                    } else {
+                                        spentColorClass = 'text-white';
+                                        remainingColorClass = 'text-white';
+                                        percentageColorClass = 'text-brand-primary';
+                                        progressBarColorClass = 'bg-brand-primary';
+                                    }
+                                } else {
+                                    if (isOverBudget) {
+                                        spentColorClass = 'text-brand-danger';
+                                        remainingColorClass = 'text-brand-danger';
+                                        percentageColorClass = 'text-brand-danger';
+                                        progressBarColorClass = 'bg-brand-danger';
+                                    } else if (percentage >= 70) {
+                                        spentColorClass = 'text-brand-warning';
+                                        remainingColorClass = 'text-brand-warning';
+                                        percentageColorClass = 'text-brand-warning';
+                                        progressBarColorClass = 'bg-brand-warning';
+                                    } else {
+                                        spentColorClass = 'text-white';
+                                        remainingColorClass = 'text-brand-success';
+                                        percentageColorClass = 'text-brand-primary';
+                                        progressBarColorClass = 'bg-brand-primary';
+                                    }
+                                }
 
                                 return (
                                     <Card
@@ -242,7 +280,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                                     {t('common.edit')}
                                                 </Button>
                                             </div>
-
+ 
                                             <div
                                                 className="grid grid-cols-3 gap-8 mb-4 cursor-pointer"
                                                 onClick={() => {
@@ -254,7 +292,7 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                             >
                                                 <div>
                                                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">{t('planning.spent')}</p>
-                                                    <p className={`font-mono font-bold text-lg ${isOverBudget ? 'text-red-400' : 'text-white'}`}>
+                                                    <p className={`font-mono font-bold text-lg ${spentColorClass}`}>
                                                         {formatCurrency(spent)}
                                                     </p>
                                                 </div>
@@ -266,22 +304,22 @@ function MonthlyPlanningPage({ categories, initialFilters, onNavigateToTransacti
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">{t('planning.remaining')}</p>
-                                                    <p className={`font-mono font-bold text-lg ${remaining < 0 ? 'text-red-400' : 'text-brand-success'}`}>
+                                                    <p className={`font-mono font-bold text-lg ${remainingColorClass}`}>
                                                         {formatCurrency(remaining)}
                                                     </p>
                                                 </div>
                                             </div>
-
+ 
                                             <div className="relative pt-2">
                                                 <div className="flex justify-between text-xs mb-2">
                                                     <span className="text-gray-400 font-medium">{t('planning.progress')}</span>
-                                                    <span className={`font-mono font-bold ${isOverBudget ? 'text-red-400' : 'text-brand-primary'}`}>
+                                                    <span className={`font-mono font-bold ${percentageColorClass}`}>
                                                         {percentage.toFixed(0)}%
                                                     </span>
                                                 </div>
                                                 <div className="w-full bg-brand-surface-light rounded-full h-2 overflow-hidden">
                                                     <div
-                                                        className={`h-full rounded-full transition-all duration-500 ease-out ${isOverBudget ? 'bg-red-500' : 'bg-brand-primary'}`}
+                                                        className={`h-full rounded-full transition-all duration-500 ease-out ${progressBarColorClass}`}
                                                         style={{ width: `${Math.min(percentage, 100)}%` }}
                                                     ></div>
                                                 </div>

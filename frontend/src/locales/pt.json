@@ -188,7 +188,16 @@
     "housing": "Moradia",
     "health": "Saúde",
     "education": "Educação",
-    "others": "Outros"
+    "others": "Outros",
+    "alimentação": "Alimentação",
+    "assinaturas": "Assinaturas",
+    "investimentos": "Investimentos",
+    "transporte": "Transporte",
+    "saúde": "Saúde",
+    "lazer": "Lazer",
+    "moradia": "Moradia",
+    "educação": "Educação",
+    "outros": "Outros"
   },
   "months": {
     "1": "Janeiro",
@@ -219,6 +228,8 @@
     "status": "Status",
     "withinLimit": "Dentro do Limite",
     "exceeded": "Excedeu o Limite",
+    "warningLimit": "Atenção (Próximo ao Limite)",
+    "investmentExceeded": "Meta Superada (Positivo)",
     "noData": "Sem dados suficientes para gerar relatórios neste período."
   }
 }

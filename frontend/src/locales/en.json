@@ -188,7 +188,16 @@
     "housing": "Housing",
     "health": "Health",
     "education": "Education",
-    "others": "Others"
+    "others": "Others",
+    "alimentação": "Food",
+    "assinaturas": "Subscriptions",
+    "investimentos": "Investments",
+    "transporte": "Transport",
+    "saúde": "Health",
+    "lazer": "Leisure",
+    "moradia": "Housing",
+    "educação": "Education",
+    "outros": "Others"
   },
   "months": {
     "1": "January",
@@ -219,6 +228,8 @@
     "status": "Status",
     "withinLimit": "Within Limit",
     "exceeded": "Exceeded Limit",
+    "warningLimit": "Warning (Near Limit)",
+    "investmentExceeded": "Goal Surpassed (Positive)",
     "noData": "Not enough data to generate reports in this period."
   }
 }

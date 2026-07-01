@@ -181,3 +181,18 @@ export async function getCachedPlanning() {
     request.onerror = (event) => reject(event.target.error);
   });
 }
+
+export async function clearAllLocalData() {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transactionObj = db.transaction(['transactions', 'accounts', 'categories', 'rules', 'planning'], 'readwrite');
+    transactionObj.objectStore('transactions').clear();
+    transactionObj.objectStore('accounts').clear();
+    transactionObj.objectStore('categories').clear();
+    transactionObj.objectStore('rules').clear();
+    transactionObj.objectStore('planning').clear();
+    
+    transactionObj.oncomplete = () => resolve();
+    transactionObj.onerror = (event) => reject(event.target.error);
+  });
+}
