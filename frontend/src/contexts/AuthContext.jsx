@@ -1,6 +1,7 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import api from '../services/api';
 import { jwtDecode } from 'jwt-decode';
+import { clearAllLocalData } from '../services/db';
 
 const AuthContext = createContext();
 
@@ -35,6 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      await clearAllLocalData().catch(console.error);
       const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', data.token);
       localStorage.removeItem('isLocalMode');
@@ -54,6 +56,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
+      await clearAllLocalData().catch(console.error);
       await api.post('/auth/register', { name, email, password });
     } catch (error) {
       console.error('Registration failed', error);
@@ -62,6 +65,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    const wasCloudMode = !!token;
     localStorage.removeItem('token');
     localStorage.removeItem('isLocalMode');
     delete api.defaults.headers.Authorization;
@@ -69,6 +73,9 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsLocalMode(false);
     setIsAuthenticated(false);
+    if (wasCloudMode) {
+      clearAllLocalData().catch(console.error);
+    }
   };
 
   const enterLocalMode = () => {

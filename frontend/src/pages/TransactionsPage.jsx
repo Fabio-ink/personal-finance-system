@@ -76,13 +76,6 @@ function TransactionsPage() {
         }
     };
 
-    useEffect(() => {
-        fetchCategories();
-        fetchAccounts();
-        const params = getFilterParams();
-        fetchItems({ ...params, page, size: pageSize });
-    }, [fetchCategories, fetchAccounts, fetchItems, page, pageSize, getFilterParams]);
-
     const handleApplyFilters = () => {
         const params = getFilterParams();
         params.page = 0; // Reset to first page when filtering
@@ -151,7 +144,7 @@ function TransactionsPage() {
 
     const pageTotal = useMemo(() => {
         return transactions.reduce((acc, transaction) => {
-            const isExpense = transaction.transactionType === 'EXPENSE' || transaction.transactionType === 'CREDIT_CARD';
+            const isExpense = transaction.transactionType === 'EXPENSE';
             return acc + (isExpense ? -transaction.amount : transaction.amount);
         }, 0);
     }, [transactions]);

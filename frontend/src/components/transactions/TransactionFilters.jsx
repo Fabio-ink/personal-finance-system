@@ -57,7 +57,6 @@ const TransactionFilters = ({ filters, onChange, onClear, categories }) => {
                     <option value="INCOME">{t('common.income')}</option>
                     <option value="EXPENSE">{t('common.expense')}</option>
                     <option value="TRANSFER">{t('common.transfer')}</option>
-                    <option value="CREDIT_CARD">{t('common.creditCard')}</option>
                 </Select>
             </div>
         </Card>

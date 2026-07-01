@@ -12,6 +12,52 @@ import {
   saveCategorizationRule
 } from '../services/db';
 
+async function getLocalFilteredAndPaginatedTransactions(params) {
+  const localData = await getLocalTransactions();
+  let filtered = [...localData].sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
+
+  if (params.name) {
+    const search = params.name.toLowerCase();
+    filtered = filtered.filter(t => t.name?.toLowerCase().includes(search));
+  }
+  if (params.startDate) {
+    const start = new Date(params.startDate);
+    filtered = filtered.filter(t => new Date(t.creationDate) >= start);
+  }
+  if (params.endDate) {
+    const end = new Date(params.endDate);
+    end.setHours(23, 59, 59, 999);
+    filtered = filtered.filter(t => new Date(t.creationDate) <= end);
+  }
+  if (params.categoryId) {
+    filtered = filtered.filter(t => {
+      const catId = t.category?.id || t.categoryId;
+      return String(catId) === String(params.categoryId);
+    });
+  }
+  if (params.transactionType) {
+    filtered = filtered.filter(t => t.transactionType === params.transactionType);
+  }
+
+  const pageNum = params.page || 0;
+  const pageSizeNum = params.size || 10;
+  const totalElements = filtered.length;
+  const totalPages = Math.ceil(totalElements / pageSizeNum);
+  const paginated = filtered.slice(pageNum * pageSizeNum, (pageNum + 1) * pageSizeNum);
+
+  return {
+    items: paginated,
+    pagination: {
+      totalPages,
+      totalElements,
+      number: pageNum,
+      size: pageSizeNum,
+      first: pageNum === 0,
+      last: pageNum === totalPages - 1 || totalPages === 0
+    }
+  };
+}
+
 export function useCrud(endpoint) {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -24,8 +70,11 @@ export function useCrud(endpoint) {
       setLoading(true);
 
       if (endpoint === '/transactions') {
-        const localData = await getLocalTransactions();
-        setItems(localData.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)));
+        if (isLocalMode) {
+          const { items: localItems, pagination: localPagination } = await getLocalFilteredAndPaginatedTransactions(params);
+          setItems(localItems);
+          setPagination(localPagination);
+        }
       } else if (endpoint === '/accounts') {
         const cached = await getCachedAccounts();
         if (isLocalMode) {
@@ -39,7 +88,7 @@ export function useCrud(endpoint) {
 
               if (t.transactionType === 'INCOME') {
                 if (String(inId) === String(acc.id)) balance += amt;
-              } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+              } else if (t.transactionType === 'EXPENSE') {
                 if (String(outId) === String(acc.id)) balance -= amt;
               } else if (t.transactionType === 'TRANSFER') {
                 if (String(inId) === String(acc.id)) balance += amt;
@@ -50,7 +99,7 @@ export function useCrud(endpoint) {
           });
           setItems(calculated);
         } else {
-          setItems(cached);
+          setItems(calculated);
         }
       } else if (endpoint === '/categories') {
         const cached = await getCachedCategories();
@@ -74,7 +123,7 @@ export function useCrud(endpoint) {
               const tYear = d.getFullYear();
               if (tMonth === entry.month && tYear === entry.year) {
                 const catId = t.category?.id || t.categoryId;
-                const isExpense = t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD' || t.transactionType === 'TRANSFER';
+                const isExpense = t.transactionType === 'EXPENSE' || t.transactionType === 'TRANSFER';
                 if (isExpense && String(catId) === String(entry.category?.id)) {
                   spent += parseFloat(t.amount) || 0;
                 }
@@ -98,8 +147,7 @@ export function useCrud(endpoint) {
           for (const item of serverItems) {
             await saveLocalTransaction({ ...item, synced: true });
           }
-          const updatedLocal = await getLocalTransactions();
-          setItems(updatedLocal.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)));
+          setItems(serverItems.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)));
         } else {
           setItems(serverItems);
         }
@@ -129,8 +177,9 @@ export function useCrud(endpoint) {
       setError(`Failed to fetch ${endpoint}. Using offline data.`);
       
       if (endpoint === '/transactions') {
-        const localData = await getLocalTransactions();
-        setItems(localData.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate)));
+        const { items: localItems, pagination: localPagination } = await getLocalFilteredAndPaginatedTransactions(params);
+        setItems(localItems);
+        setPagination(localPagination);
       } else if (endpoint === '/accounts') {
         const cached = await getCachedAccounts();
         setItems(cached);

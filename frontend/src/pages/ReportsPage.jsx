@@ -37,7 +37,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
     const amt = parseFloat(t.amount) || 0;
     if (t.transactionType === 'INCOME') {
       totalIncome += amt;
-    } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD' || (t.transactionType === 'TRANSFER' && (t.category || t.categoryId || t.categoryName))) {
+    } else if (t.transactionType === 'EXPENSE' || (t.transactionType === 'TRANSFER' && (t.category || t.categoryId || t.categoryName))) {
       totalExpense += amt;
       const catName = t.category?.name || t.categoryName || 'Outros';
       categoryExpenses[catName] = (categoryExpenses[catName] || 0) + amt;
@@ -81,7 +81,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
       let spentPastMonth = 0;
       pastTx.forEach(t => {
         if ((t.category?.name === catName || t.categoryName === catName) &&
-            (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD' || t.transactionType === 'TRANSFER')) {
+            (t.transactionType === 'EXPENSE' || t.transactionType === 'TRANSFER')) {
           spentPastMonth += parseFloat(t.amount) || 0;
         }
       });
@@ -128,7 +128,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
       const amt = parseFloat(t.amount) || 0;
       if (t.transactionType === 'INCOME') {
         inc += amt;
-      } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD' || (t.transactionType === 'TRANSFER' && (t.category || t.categoryId || t.categoryName))) {
+      } else if (t.transactionType === 'EXPENSE' || (t.transactionType === 'TRANSFER' && (t.category || t.categoryId || t.categoryName))) {
         exp += amt;
       }
     });
@@ -422,11 +422,44 @@ function ReportsPage() {
                       const hasBudget = limit > 0;
                       const ratio = hasBudget ? (spent / limit) * 100 : 0;
                       const exceeded = hasBudget && spent > limit;
+                      const isInvestment = report.categoryName?.toLowerCase() === 'investimentos';
+
+                      // Determine colors and status message
+                      let spentColor = isInvestment ? 'text-brand-success' : 'text-red-400';
+                      let barColorClass = 'bg-green-500';
+                      let textColorClass = 'text-green-500';
+                      let statusText = `${t('reports.withinLimit')} (${ratio.toFixed(0)}%)`;
+
+                      if (isInvestment) {
+                        if (exceeded) {
+                          barColorClass = 'bg-brand-success';
+                          textColorClass = 'text-brand-success';
+                          statusText = `${t('reports.investmentExceeded')} (${(ratio - 100).toFixed(0)}%+)`;
+                        } else {
+                          barColorClass = 'bg-green-500';
+                          textColorClass = 'text-green-500';
+                          statusText = `${t('reports.withinLimit')} (${ratio.toFixed(0)}%)`;
+                        }
+                      } else {
+                        if (exceeded) {
+                          barColorClass = 'bg-brand-danger';
+                          textColorClass = 'text-brand-danger';
+                          statusText = `${t('reports.exceeded')} (${(ratio - 100).toFixed(0)}%+)`;
+                        } else if (ratio >= 70) {
+                          barColorClass = 'bg-brand-warning';
+                          textColorClass = 'text-brand-warning';
+                          statusText = `${t('reports.warningLimit')} (${ratio.toFixed(0)}%)`;
+                        } else {
+                          barColorClass = 'bg-green-500';
+                          textColorClass = 'text-green-500';
+                          statusText = `${t('reports.withinLimit')} (${ratio.toFixed(0)}%)`;
+                        }
+                      }
 
                       return (
                         <tr key={index} className="hover:bg-brand-card-hover/20 transition-colors">
                           <td className="py-4 px-4 font-medium">{report.categoryName ? t(`categories.${report.categoryName.toLowerCase()}`, report.categoryName) : t('common.all')}</td>
-                          <td className="py-4 px-4 text-right text-red-400 font-semibold">
+                          <td className={`py-4 px-4 text-right font-semibold ${spentColor}`}>
                             {formatCurrency(spent)}
                           </td>
                           <td className="py-4 px-4 text-right text-text-secondary">
@@ -440,14 +473,12 @@ function ReportsPage() {
                               <div className="flex flex-col gap-1.5 w-56">
                                 <div className="w-full bg-gray-700 h-3 rounded-full overflow-hidden">
                                   <div
-                                    className={`h-full rounded-full transition-all duration-300 ${exceeded ? 'bg-red-500' : 'bg-green-500'}`}
+                                    className={`h-full rounded-full transition-all duration-300 ${barColorClass}`}
                                     style={{ width: `${Math.min(ratio, 100)}%` }}
                                   ></div>
                                 </div>
-                                <span className={`text-sm font-semibold ${exceeded ? 'text-red-500' : 'text-green-500'}`}>
-                                  {exceeded
-                                    ? `${t('reports.exceeded')} (${(ratio - 100).toFixed(0)}%+)`
-                                    : `${t('reports.withinLimit')} (${ratio.toFixed(0)}%)`}
+                                <span className={`text-sm font-semibold ${textColorClass}`}>
+                                  {statusText}
                                 </span>
                               </div>
                             ) : (

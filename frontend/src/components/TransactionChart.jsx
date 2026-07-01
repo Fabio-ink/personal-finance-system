@@ -58,7 +58,7 @@ const TransactionChart = ({ transactions }) => {
             }
             if (t.transactionType === 'INCOME') {
                 acc[date].income += t.amount;
-            } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+            } else if (t.transactionType === 'EXPENSE') {
                 acc[date].expense += t.amount;
             } else if (t.transactionType === 'TRANSFER') {
                 acc[date].transfer += t.amount;

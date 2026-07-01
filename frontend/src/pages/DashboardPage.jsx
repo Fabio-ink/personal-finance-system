@@ -38,7 +38,7 @@ const calculateLocalSummary = (transactions) => {
         const amt = parseFloat(t.amount) || 0;
         if (t.transactionType === 'INCOME') {
           totalIncome += amt;
-        } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+        } else if (t.transactionType === 'EXPENSE') {
           totalSpent += amt;
         }
       }
@@ -82,7 +82,7 @@ const mergeSummaryWithLocalUnsynced = (serverSummary, localTransactions) => {
         const amt = parseFloat(t.amount) || 0;
         if (t.transactionType === 'INCOME') {
           extraIncome += amt;
-        } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+        } else if (t.transactionType === 'EXPENSE') {
           extraSpent += amt;
         }
       }
@@ -166,7 +166,7 @@ function DashboardPage() {
 
             if (t.transactionType === 'INCOME') {
               if (String(inId) === String(acc.id)) balance += amt;
-            } else if (t.transactionType === 'EXPENSE' || t.transactionType === 'CREDIT_CARD') {
+            } else if (t.transactionType === 'EXPENSE') {
               if (String(outId) === String(acc.id)) balance -= amt;
             } else if (t.transactionType === 'TRANSFER') {
               if (String(inId) === String(acc.id)) balance += amt;
