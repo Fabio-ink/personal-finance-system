@@ -5,8 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from './src/contexts/AuthContext.jsx';
 
 import DashboardPage from './src/pages/DashboardPage.jsx';
-import AccountsPage from './src/pages/AccountsPage.jsx';
-import CategoriesPage from './src/pages/CategoriesPage.jsx';
+import CategoriesAccountsPage from './src/pages/CategoriesAccountsPage.jsx';
 import TransactionsPage from './src/pages/TransactionsPage.jsx';
 import ReportsPage from './src/pages/ReportsPage.jsx';
 import LoginPage from './src/pages/LoginPage.jsx';
@@ -52,7 +51,7 @@ const AppLayout = () => {
         <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-3">
              {/* Logo in Center */}
             <div className="flex flex-col items-center">
-                 <div className="text-2xl font-bold tracking-widest text-white">SYNC</div>
+                 <div className="text-2xl font-bold tracking-widest text-brand-success">SYNC</div>
                  <div className="text-xs tracking-[0.3em] text-text-secondary uppercase">wallet</div>
             </div>
         </div>
@@ -68,16 +67,16 @@ const AppLayout = () => {
         </div>
         
         <div className="flex flex-col gap-2 pt-4">
-            <NavLink to="/" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <NavLink to="/" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
             <LayoutDashboard size={22} /> {t('common.dashboard')}
             </NavLink>
-            <NavLink to="/transactions" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <NavLink to="/transactions" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
             <List size={22} /> {t('common.transactions')}
             </NavLink>
-            <NavLink to="/categories" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
-            <PieChart size={22} /> {t('common.categories')}
+            <NavLink to="/categories" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <PieChart size={22} /> {t('common.categoriesAccounts')}
             </NavLink>
-            <NavLink to="/reports" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <NavLink to="/reports" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
             <BarChart size={22} /> {t('reports.title')}
             </NavLink>
         </div>
@@ -125,8 +124,8 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/accounts" element={<AccountsPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/accounts" element={<CategoriesAccountsPage />} />
+          <Route path="/categories" element={<CategoriesAccountsPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/profile" element={<UserProfilePage />} />

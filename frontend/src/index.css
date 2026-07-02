@@ -1,31 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-dark: #13111c;
-  --color-brand-card: #1e1b29;
-  --color-brand-card-hover: #2a253a;
-  --color-brand-border: #2d283e;
+  --color-brand-dark: #1a1823;
+  --color-brand-card: #23202f;
+  --color-brand-card-hover: #2f2b3e;
+  --color-brand-border: #322e45;
 
-  --color-brand-primary: #8a6dff;
-  --color-brand-primary-hover: #7a5ce6;
+  --color-brand-primary: #8564f6;
+  --color-brand-primary-hover: #a282f1;
 
-  --color-brand-success: #00d09c;
-  --color-brand-success-hover: #00b386;
+  --color-brand-success: #d0e96a;
+  --color-brand-success-hover: #c4de5b;
 
   --color-brand-danger: #ff4c4c;
   --color-brand-danger-hover: #e63535;
 
-  --color-brand-info: #8a6dff;
+  --color-brand-info: #a282f1;
   --color-brand-warning: #ffb039;
 
-  --color-brand-gradient-start: #2e1065;
-  --color-brand-gradient-end: #0f0518;
+  --color-brand-gradient-start: #23202f;
+  --color-brand-gradient-end: #1a1823;
 
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #9ca3af;
-  --color-text-muted: #6b7280;
+  --color-text-primary: #fefefe;
+  --color-text-secondary: #9c99b0;
+  --color-text-muted: #686480;
 
-  --font-sans: "Outfit", "Inter", sans-serif;
+  --font-sans: "SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
