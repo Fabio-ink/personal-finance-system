@@ -99,7 +99,7 @@ export function useCrud(endpoint) {
           });
           setItems(calculated);
         } else {
-          setItems(calculated);
+          setItems(cached);
         }
       } else if (endpoint === '/categories') {
         const cached = await getCachedCategories();
@@ -206,7 +206,7 @@ export function useCrud(endpoint) {
 
         const categoryName = itemData.category?.name || itemData.categoryName;
         if (categoryName && itemData.name) {
-          const keyword = itemData.name.replace(/[0-9]+/g, '').replace(/[-*#\/\\_]+/g, ' ').trim().toLowerCase();
+          const keyword = itemData.name.replace(/[0-9]+/g, '').replace(new RegExp('[-*#/\\\\_]+', 'g'), ' ').trim().toLowerCase();
           if (keyword.length >= 3) {
             saveCategorizationRule(keyword, categoryName).catch(console.error);
           }
@@ -276,7 +276,7 @@ export function useCrud(endpoint) {
 
         const categoryName = itemData.category?.name || itemData.categoryName;
         if (categoryName && itemData.name) {
-          const keyword = itemData.name.replace(/[0-9]+/g, '').replace(/[-*#\/\\_]+/g, ' ').trim().toLowerCase();
+          const keyword = itemData.name.replace(/[0-9]+/g, '').replace(new RegExp('[-*#/\\\\_]+', 'g'), ' ').trim().toLowerCase();
           if (keyword.length >= 3) {
             saveCategorizationRule(keyword, categoryName).catch(console.error);
           }

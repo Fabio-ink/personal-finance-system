@@ -80,7 +80,7 @@ export function startSyncLoop(onSyncSuccess) {
       if (synced && onSyncSuccess) {
         onSyncSuccess();
       }
-    } catch (e) {
+    } catch {
       // Ignored for background sync resiliency
     }
   };
