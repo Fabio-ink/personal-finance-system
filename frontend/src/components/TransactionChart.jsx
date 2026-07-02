@@ -113,25 +113,28 @@ const TransactionChart = ({ transactions }) => {
 
     return (
         <div className="w-full h-full flex flex-col">
-            <div className="flex justify-end gap-2 mb-4">
-                {['1S', '1M', '1A', 'Max'].map((range) => (
-                    <button
-                        key={range}
-                        onClick={() => setTimeRange(range)}
-                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${
-                            timeRange === range
-                                ? 'bg-brand-primary text-white'
-                                : 'bg-brand-card border border-brand-border/50 text-gray-400 hover:text-white hover:border-brand-primary/50'
-                        }`}
-                    >
-                        {range === '1S' ? t('dashboard.week') : range === '1M' ? t('dashboard.month') : range === '1A' ? t('dashboard.year') : t('dashboard.max')}
-                    </button>
-                ))}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h3 className="text-xl font-bold text-white">Fluxo de Caixa</h3>
+                <div className="flex gap-2">
+                    {['1S', '1M', '1A', 'Max'].map((range) => (
+                        <button
+                            key={range}
+                            onClick={() => setTimeRange(range)}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer ${
+                                timeRange === range
+                                    ? 'bg-brand-primary text-white'
+                                    : 'bg-brand-card border border-brand-border/50 text-gray-400 hover:text-white hover:border-brand-primary/50'
+                            }`}
+                        >
+                            {range === '1S' ? t('dashboard.week') : range === '1M' ? t('dashboard.month') : range === '1A' ? t('dashboard.year') : t('dashboard.max')}
+                        </button>
+                    ))}
+                </div>
             </div>
             
             <div className="flex-1 min-h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                    <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                         <CartesianGrid vertical={true} horizontal={true} stroke="#374151" strokeOpacity={0.3} />
                         <XAxis 
                             dataKey="date" 
@@ -157,7 +160,7 @@ const TransactionChart = ({ transactions }) => {
                         {/* Income - Green/Teal */}
                         <Line 
                             name={t('dashboard.income')}
-                            type="linear" 
+                            type="monotone" 
                             dataKey="income" 
                             stroke="#10B981" 
                             strokeWidth={2} 
@@ -168,7 +171,7 @@ const TransactionChart = ({ transactions }) => {
                         {/* Transfers - Purple */}
                         <Line 
                             name={t('dashboard.transfers')}
-                            type="linear" 
+                            type="monotone" 
                             dataKey="transfer" 
                             stroke="#8B5CF6" 
                             strokeWidth={2} 
@@ -179,7 +182,7 @@ const TransactionChart = ({ transactions }) => {
                         {/* Expenses - Red */}
                         <Line 
                             name={t('dashboard.expenses')}
-                            type="linear" 
+                            type="monotone" 
                             dataKey="expense" 
                             stroke="#EF4444" 
                             strokeWidth={2} 

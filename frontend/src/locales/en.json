@@ -24,6 +24,7 @@
     "dashboard": "Dashboard",
     "transactions": "Transactions",
     "categories": "Categories",
+    "categoriesAccounts": "Accounts & Categories",
     "accounts": "Accounts",
     "planning": "Monthly Planning",
     "logout": "Logout",
@@ -81,7 +82,12 @@
     "year": "1 Year",
     "max": "Max",
     "expenses": "Expenses",
-    "transfers": "Transfers"
+    "transfers": "Transfers",
+    "availableBalance": "Available Balance",
+    "currentMonth": "Current month",
+    "monthlyIncome": "Monthly Income",
+    "monthlyExpenses": "Monthly Expenses",
+    "comparedToPreviousMonth": "compared to last month"
   },
   "transactions": {
     "title": "All Transactions",
@@ -175,13 +181,16 @@
     "updateAccount": "Update Account",
     "deleteSelected": "Delete Selected",
     "noAccounts": "No accounts found. Add one using the form above.",
-    "deleteConfirm": "Are you sure you want to delete this account?"
+    "deleteConfirm": "Are you sure you want to delete this account?",
+    "addAccount": "Add Account",
+    "selectMainNote": "By checking the box next to an account, it will be set as the main one on the platform. (you can only keep one main account at a time)"
   },
   "categories": {
     "title": "Manage Categories",
     "name": "Category Name",
     "placeholderName": "e.g., Food, Investment",
     "noCategories": "No categories found. Add one using the form above.",
+    "addCategory": "Add Category",
     "food": "Food",
     "transport": "Transport",
     "entertainment": "Entertainment",

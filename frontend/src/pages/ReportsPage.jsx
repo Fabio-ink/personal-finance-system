@@ -7,6 +7,9 @@ import Select from '../components/ui/Select';
 import { formatCurrency } from '../utils/dateUtils';
 import { getLocalTransactions } from '../services/db';
 import { useAuth } from '../contexts/AuthContext';
+import Modal from '../components/ui/Modal';
+import Input from '../components/ui/Input';
+import Checkbox from '../components/ui/Checkbox';
 import {
   BarChart,
   Bar,
@@ -150,7 +153,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
 };
 
 function ReportsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isLocalMode } = useAuth();
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -191,6 +194,182 @@ function ReportsPage() {
   }, [month, year, isLocalMode]);
 
   const netBalance = data ? data.totalIncome - data.totalExpense : 0;
+
+  const [isPlanningModalOpen, setIsPlanningModalOpen] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [allCategories, setAllCategories] = useState([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState(new Set());
+  const [budgets, setBudgets] = useState({});
+  const [existingPlannings, setExistingPlannings] = useState({});
+  const [planningModalLoading, setPlanningModalLoading] = useState(false);
+
+  const handleOpenPlanningModal = async () => {
+    try {
+      setPlanningModalLoading(true);
+      setIsPlanningModalOpen(true);
+      setWizardStep(1);
+
+      let cats = [];
+      let monthPlannings = [];
+
+      if (isLocalMode) {
+        const { getCachedCategories, getCachedPlanning } = await import('../services/db');
+        cats = await getCachedCategories().catch(() => []);
+        const allPlannings = await getCachedPlanning().catch(() => []);
+        monthPlannings = allPlannings.filter(p => p.month === month && p.year === year);
+      } else {
+        const categoriesResponse = await api.get('/categories');
+        cats = categoriesResponse.data;
+
+        const planningResponse = await api.get('/monthly-planning', {
+          params: { month, year, size: 100 }
+        });
+        monthPlannings = planningResponse.data.content || planningResponse.data || [];
+      }
+
+      setAllCategories(cats);
+
+      const selectedIds = new Set();
+      const initialBudgets = {};
+      const initialExistingPlannings = {};
+
+      monthPlannings.forEach(p => {
+        const catId = p.category?.id || p.categoryId;
+        if (catId) {
+          selectedIds.add(catId);
+          initialBudgets[catId] = p.estimatedAmount || p.plannedValue || 0;
+          initialExistingPlannings[catId] = p;
+        }
+      });
+
+      setSelectedCategoryIds(selectedIds);
+      setBudgets(initialBudgets);
+      setExistingPlannings(initialExistingPlannings);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPlanningModalLoading(false);
+    }
+  };
+
+  const handleToggleCategorySelect = (categoryId) => {
+    setSelectedCategoryIds(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+        if (budgets[categoryId] === undefined) {
+          setBudgets(prevBudgets => ({ ...prevBudgets, [categoryId]: 0 }));
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectAllCategories = () => {
+    if (selectedCategoryIds.size === allCategories.length) {
+      setSelectedCategoryIds(new Set());
+    } else {
+      const allIds = new Set(allCategories.map(c => c.id));
+      setSelectedCategoryIds(allIds);
+      allCategories.forEach(c => {
+        if (budgets[c.id] === undefined) {
+          setBudgets(prev => ({ ...prev, [c.id]: 0 }));
+        }
+      });
+    }
+  };
+
+  const handleBudgetAmountChange = (categoryId, val) => {
+    setBudgets(prev => ({
+      ...prev,
+      [categoryId]: val === '' ? '' : parseFloat(val)
+    }));
+  };
+
+  const handleSavePlanning = async () => {
+    try {
+      setPlanningModalLoading(true);
+
+      if (isLocalMode) {
+        const { getCachedPlanning, cachePlanning } = await import('../services/db');
+        let localPlannings = await getCachedPlanning().catch(() => []);
+
+        localPlannings = localPlannings.filter(p => {
+          const isThisMonth = p.month === month && p.year === year;
+          if (!isThisMonth) return true;
+          const catId = p.category?.id || p.categoryId;
+          return selectedCategoryIds.has(catId) || selectedCategoryIds.has(Number(catId)) || selectedCategoryIds.has(String(catId));
+        });
+
+        for (const catId of selectedCategoryIds) {
+          const amount = parseFloat(budgets[catId]) || 0;
+          const existingIndex = localPlannings.findIndex(p =>
+            p.month === month &&
+            p.year === year &&
+            String(p.category?.id || p.categoryId) === String(catId)
+          );
+
+          const categoryObj = allCategories.find(c => String(c.id) === String(catId));
+
+          if (existingIndex >= 0) {
+            localPlannings[existingIndex] = {
+              ...localPlannings[existingIndex],
+              estimatedAmount: amount,
+              plannedValue: amount
+            };
+          } else {
+            localPlannings.push({
+              id: `local_plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              month,
+              year,
+              category: categoryObj,
+              estimatedAmount: amount,
+              plannedValue: amount
+            });
+          }
+        }
+
+        await cachePlanning(localPlannings);
+      } else {
+        for (const catId in existingPlannings) {
+          const numId = Number(catId);
+          const strId = String(catId);
+          if (!selectedCategoryIds.has(numId) && !selectedCategoryIds.has(strId)) {
+            const entry = existingPlannings[catId];
+            await api.delete(`/monthly-planning/${entry.id}`);
+          }
+        }
+
+        for (const catId of selectedCategoryIds) {
+          const amount = parseFloat(budgets[catId]) || 0;
+          const entry = existingPlannings[catId];
+
+          const categoryObj = allCategories.find(c => String(c.id) === String(catId));
+          const payload = {
+            month,
+            year,
+            category: categoryObj ? { id: categoryObj.id, name: categoryObj.name } : null,
+            estimatedAmount: amount
+          };
+
+          if (entry) {
+            await api.put(`/monthly-planning/${entry.id}`, payload);
+          } else {
+            await api.post('/monthly-planning', payload);
+          }
+        }
+      }
+
+      setIsPlanningModalOpen(false);
+      fetchReport();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPlanningModalLoading(false);
+    }
+  };
 
   const pieData = data?.categoryReports
     ? data.categoryReports
@@ -399,9 +578,17 @@ function ReportsPage() {
           </div>
 
           <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
-            <h4 className="text-lg font-bold text-white mb-4">
-              {t('reports.budgetProgress')}
-            </h4>
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="text-lg font-bold text-white">
+                {t('reports.budgetProgress')}
+              </h4>
+              <Button
+                onClick={handleOpenPlanningModal}
+                className="bg-brand-primary/20 hover:bg-brand-primary/30 text-white border border-brand-primary/40 shadow-[0_0_15px_rgba(138,109,255,0.2)] px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 text-sm cursor-pointer"
+              >
+                {t('planning.title')}
+              </Button>
+            </div>
             <div className="overflow-x-auto max-h-80 overflow-y-auto pr-2">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-[#1a1529] z-10">
@@ -501,6 +688,129 @@ function ReportsPage() {
           </div>
         </div>
       ) : null}
+
+      <Modal isOpen={isPlanningModalOpen} onCancel={() => setIsPlanningModalOpen(false)} maxWidth="max-w-2xl">
+        {planningModalLoading && allCategories.length === 0 ? (
+          <div className="flex justify-center py-12">
+            <span className="text-white text-sm">{t('common.loading')}</span>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <div>
+              <h4 className="text-lg font-bold text-white">
+                {wizardStep === 1
+                  ? `${t('planning.title')} - ${t('planning.form.category')}`
+                  : `${t('planning.title')} - ${t('planning.form.amount')}`}
+              </h4>
+              <span className="text-xs text-text-secondary mt-1 block">
+                Ref: {t(`months.${month}`)} / {year}
+              </span>
+            </div>
+
+            {wizardStep === 1 ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-brand-border/10">
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectAllCategories}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                      allCategories.length > 0 && selectedCategoryIds.size === allCategories.length
+                        ? 'bg-brand-primary/25 text-white border border-brand-primary/50'
+                        : 'bg-brand-dark/30 text-text-secondary border border-brand-border/20 hover:bg-brand-dark/50'
+                    }`}
+                  >
+                    {t('planning.selectAll')}
+                  </button>
+                  <span className="text-xs text-text-secondary">
+                    {selectedCategoryIds.size} {t('planning.itemsSelected')}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+                  {allCategories.length > 0 ? (
+                    allCategories.map(cat => {
+                      const isSelected = selectedCategoryIds.has(cat.id);
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => handleToggleCategorySelect(cat.id)}
+                          className={`text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-brand-primary/20 text-white border border-brand-primary/40'
+                              : 'bg-brand-dark/20 text-text-secondary border border-brand-border/10 hover:bg-brand-dark/40 hover:text-white'
+                          }`}
+                        >
+                          {t(`categories.${cat.name.toLowerCase()}`, cat.name)}
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <p className="text-text-secondary text-center py-6 col-span-2">{t('categories.noCategories')}</p>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button variant="outline" type="button" onClick={() => setIsPlanningModalOpen(false)}>
+                    {t('common.cancel')}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    type="button"
+                    onClick={() => setWizardStep(2)}
+                    disabled={selectedCategoryIds.size === 0}
+                  >
+                    {t('common.next')}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                  {allCategories
+                    .filter(cat => selectedCategoryIds.has(cat.id))
+                    .map(cat => (
+                      <div key={cat.id} className="flex items-center gap-4 bg-brand-dark/20 border border-brand-border/10 rounded-xl px-4 py-3">
+                        <span className="text-sm font-semibold text-white flex-1 truncate">
+                          {t(`categories.${cat.name.toLowerCase()}`, cat.name)}
+                        </span>
+                        <div className="relative w-44 shrink-0">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none">
+                            {i18n.language.startsWith('pt') ? 'R$' : '$'}
+                          </span>
+                          <input
+                            id={`budget-input-${cat.id}`}
+                            type="number"
+                            step="0.01"
+                            value={budgets[cat.id] !== undefined ? budgets[cat.id] : ''}
+                            onChange={(e) => handleBudgetAmountChange(cat.id, e.target.value)}
+                            placeholder="0,00"
+                            className="w-full pl-9 pr-3 py-2 rounded-lg bg-brand-dark/40 border border-brand-border/20 text-white text-sm focus:outline-none focus:border-brand-primary/60 focus:ring-1 focus:ring-brand-primary/30 transition-all placeholder:text-text-secondary/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+                      </div>
+                    ))
+                  }
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button variant="outline" type="button" onClick={() => setWizardStep(1)}>
+                    {t('common.previous')}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    type="button"
+                    onClick={handleSavePlanning}
+                    disabled={planningModalLoading}
+                  >
+                    {planningModalLoading ? t('common.loading') : t('common.save')}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

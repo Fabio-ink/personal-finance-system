@@ -24,6 +24,7 @@
     "dashboard": "Painel",
     "transactions": "Transações",
     "categories": "Categorias",
+    "categoriesAccounts": "Contas e Categorias",
     "accounts": "Contas",
     "planning": "Planejamento Mensal",
     "logout": "Sair",
@@ -81,7 +82,12 @@
     "year": "1 Ano",
     "max": "Máximo",
     "expenses": "Despesas",
-    "transfers": "Transferências"
+    "transfers": "Transferências",
+    "availableBalance": "Saldo Disponível",
+    "currentMonth": "Mês atual",
+    "monthlyIncome": "Receitas do Mês",
+    "monthlyExpenses": "Despesas do Mês",
+    "comparedToPreviousMonth": "em relação ao mês passado"
   },
   "transactions": {
     "title": "Todas as Transações",
@@ -175,13 +181,16 @@
     "updateAccount": "Atualizar Conta",
     "deleteSelected": "Excluir Selecionados",
     "noAccounts": "Nenhuma conta encontrada. Adicione uma usando o formulário acima.",
-    "deleteConfirm": "Tem certeza que deseja excluir esta conta?"
+    "deleteConfirm": "Tem certeza que deseja excluir esta conta?",
+    "addAccount": "Adicionar Conta",
+    "selectMainNote": "Ao marcar a caixa ao lado de uma conta, ela será definida como a principal na plataforma. (você só pode manter uma conta principal por vez)"
   },
   "categories": {
     "title": "Gerenciar Categorias",
     "name": "Nome da Categoria",
     "placeholderName": "ex: Alimentação, Investimentos",
     "noCategories": "Nenhuma categoria encontrada. Adicione uma usando o formulário acima.",
+    "addCategory": "Adicionar Categoria",
     "food": "Alimentação",
     "transport": "Transporte",
     "entertainment": "Entretenimento",

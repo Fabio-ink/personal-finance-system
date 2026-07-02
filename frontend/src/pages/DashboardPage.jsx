@@ -1,28 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createTransaction, updateTransaction, deleteAccount } from '../services/api'; 
+import { createTransaction, updateTransaction } from '../services/api'; 
 import { useAuth } from '../contexts/AuthContext'; 
-import MonthSummaryCard from '../components/MonthSummaryCard';
 import TransactionChart from '../components/TransactionChart';
 import Card from '../components/ui/Card';
 import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
 import TransactionForm from '../components/TransactionForm';
 import TransactionList from '../components/TransactionList';
-import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import PageTitle from '../components/ui/PageTitle';
-import Input from '../components/ui/Input';
 import DashboardAction from '../components/DashboardAction';
+import AccountBalanceCarousel from '../components/AccountBalanceCarousel';
 import { formatCurrency } from '../utils/dateUtils';
-import { PlusCircle } from 'lucide-react'; 
 import { useTranslation } from 'react-i18next';
 import { ptBR, enUS } from 'date-fns/locale';
 import api from '../services/api';
-import AccountForm from '../components/AccountForm';
-import AccountsListModal from '../components/AccountsListModal';
-import { format, subMonths, addMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { getLocalTransactions, getCachedAccounts, getCachedCategories } from '../services/db';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const calculateLocalSummary = (transactions) => {
   const getMonthData = (date) => {
@@ -49,14 +45,10 @@ const calculateLocalSummary = (transactions) => {
 
   const currentMonth = new Date();
   const previousMonth = subMonths(currentMonth, 1);
-  const previousMonth2 = subMonths(currentMonth, 2);
-  const nextMonth = addMonths(currentMonth, 1);
 
   return {
-    previous2: getMonthData(previousMonth2),
     previous: getMonthData(previousMonth),
     current: getMonthData(currentMonth),
-    next: getMonthData(nextMonth)
   };
 };
 
@@ -67,8 +59,6 @@ const mergeSummaryWithLocalUnsynced = (serverSummary, localTransactions) => {
 
   const currentMonth = new Date();
   const previousMonth = subMonths(currentMonth, 1);
-  const previousMonth2 = subMonths(currentMonth, 2);
-  const nextMonth = addMonths(currentMonth, 1);
 
   const applyUnsyncedToMonth = (monthData, date) => {
     const start = startOfMonth(date);
@@ -96,10 +86,8 @@ const mergeSummaryWithLocalUnsynced = (serverSummary, localTransactions) => {
   };
 
   return {
-    previous2: applyUnsyncedToMonth(serverSummary.previous2, previousMonth2),
     previous: applyUnsyncedToMonth(serverSummary.previous, previousMonth),
     current: applyUnsyncedToMonth(serverSummary.current, currentMonth),
-    next: applyUnsyncedToMonth(serverSummary.next, nextMonth)
   };
 };
 
@@ -115,26 +103,10 @@ function DashboardPage() {
   const [error, setError] = useState(null);
   const [isTransactionModalOpen, setTransactionModalOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState(null);
-  
-  // Account Modals State
-  const [isAccountFormModalOpen, setAccountFormModalOpen] = useState(false);
-  const [isAccountsListModalOpen, setAccountsListModalOpen] = useState(false);
-  const [accountToEdit, setAccountToEdit] = useState(null);
-
-  // Calculate dynamic months
-  const currentMonth = new Date();
-  const previousMonth = subMonths(currentMonth, 1);
-  const previousMonth2 = subMonths(currentMonth, 2);
-  const nextMonth = addMonths(currentMonth, 1);
 
   const dateLocale = i18n.language.startsWith('pt') ? ptBR : enUS;
-
-  const previousMonthName = format(previousMonth, 'MMMM', { locale: dateLocale });
-  const previousMonth2Name = format(previousMonth2, 'MMMM', { locale: dateLocale });
+  const currentMonth = new Date();
   const currentMonthName = format(currentMonth, 'MMMM', { locale: dateLocale });
-  const nextMonthName = format(nextMonth, 'MMMM', { locale: dateLocale });
-
-  // Capitalize first letter
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
   const fetchAllData = useCallback(async () => {
@@ -226,26 +198,6 @@ function DashboardPage() {
     setTransactionModalOpen(false);
   }, []);
 
-  // Account Handlers
-  const handleOpenAccountForm = useCallback((account = null) => {
-    setAccountToEdit(account);
-    setAccountFormModalOpen(true);
-    setAccountsListModalOpen(false);
-  }, []);
-
-  const handleCloseAccountForm = useCallback(() => {
-    setAccountToEdit(null);
-    setAccountFormModalOpen(false);
-  }, []);
-
-  const handleOpenAccountsList = useCallback(() => {
-    setAccountsListModalOpen(true);
-  }, []);
-
-  const handleCloseAccountsList = useCallback(() => {
-    setAccountsListModalOpen(false);
-  }, []);
-
   const handleSaveTransaction = useCallback(async (transactionData) => {
     try {
       if (isLocalMode) {
@@ -272,53 +224,19 @@ function DashboardPage() {
     }
   }, [transactionToEdit, handleCloseModal, fetchAllData, isLocalMode]);
 
-  const handleSaveAccount = useCallback(() => {
-    handleCloseAccountForm();
-    fetchAllData();
-  }, [handleCloseAccountForm, fetchAllData]);
+  const incomeVariation = useMemo(() => {
+    if (!monthlySummary?.current || !monthlySummary?.previous) return null;
+    const prev = monthlySummary.previous.totalIncome || 0;
+    if (prev === 0) return null;
+    return ((monthlySummary.current.totalIncome - prev) / prev * 100).toFixed(0);
+  }, [monthlySummary]);
 
-  const handleDeleteAccount = useCallback(async (accountId) => {
-    try {
-        if (isLocalMode) {
-          const { getCachedAccounts, cacheAccounts } = await import('../services/db');
-          const cached = await getCachedAccounts();
-          const updated = cached.filter(acc => acc.id !== accountId);
-          await cacheAccounts(updated);
-          handleCloseAccountForm();
-          fetchAllData();
-          return;
-        }
-
-        await deleteAccount(accountId);
-        handleCloseAccountForm();
-        fetchAllData();
-    } catch (error) {
-        console.error("Error deleting account", error);
-        alert(t('dashboard.deleteAccountConfirm'));
-    }
-  }, [handleCloseAccountForm, fetchAllData, isLocalMode]);
-
-  const handleMonthTitleClick = (date) => {
-    const startDate = format(startOfMonth(date), 'yyyy-MM-dd');
-    const endDate = format(endOfMonth(date), 'yyyy-MM-dd');
-    navigate('/transactions', { 
-        state: { 
-            activeTab: 'transactions', 
-            startDate, 
-            endDate 
-        } 
-    });
-  };
-
-  const handleMonthPlanningClick = (date) => {
-    navigate('/transactions', { 
-        state: { 
-            activeTab: 'planning', 
-            planningMonth: date.getMonth() + 1, 
-            planningYear: date.getFullYear() 
-        } 
-    });
-  };
+  const expenseVariation = useMemo(() => {
+    if (!monthlySummary?.current || !monthlySummary?.previous) return null;
+    const prev = monthlySummary.previous.totalSpent || 0;
+    if (prev === 0) return null;
+    return ((monthlySummary.current.totalSpent - prev) / prev * 100).toFixed(0);
+  }, [monthlySummary]);
 
   if (loading) {
     return <Spinner />;
@@ -328,52 +246,86 @@ function DashboardPage() {
     return <ErrorMessage message={error} />;
   }
 
-  const currencyLocale = i18n.language.startsWith('pt') ? 'pt-BR' : 'en-US';
-  const currencyCode = i18n.language.startsWith('pt') ? 'BRL' : 'USD';
-
   return (
     <>
       <div className="container mx-auto space-y-8 p-4">
-        
-        {/* Row 1: Monthly Summaries */}
-        {monthlySummary ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MonthSummaryCard 
-                title={capitalize(previousMonth2Name)} 
-                {...monthlySummary.previous2} 
-                onClickTitle={() => handleMonthTitleClick(previousMonth2)}
-                onClickPercentage={() => handleMonthPlanningClick(previousMonth2)}
-            />
-            <MonthSummaryCard 
-                title={capitalize(previousMonthName)} 
-                {...monthlySummary.previous} 
-                onClickTitle={() => handleMonthTitleClick(previousMonth)}
-                onClickPercentage={() => handleMonthPlanningClick(previousMonth)}
-            />
-            <MonthSummaryCard 
-                title={capitalize(currentMonthName)} 
-                {...monthlySummary.current} 
-                className="border-brand-primary border-2 shadow-brand-primary/20 shadow-xl"
-                onClickTitle={() => handleMonthTitleClick(currentMonth)}
-                onClickPercentage={() => handleMonthPlanningClick(currentMonth)}
-            />
-            <MonthSummaryCard 
-                title={capitalize(nextMonthName)} 
-                {...monthlySummary.next} 
-                onClickTitle={() => handleMonthTitleClick(nextMonth)}
-                onClickPercentage={() => handleMonthPlanningClick(nextMonth)}
-            />
+
+        {/* Row 1: Summary Cards */}
+        <div>
+          <p className="text-sm text-gray-400 mb-4">
+            {t('dashboard.currentMonth')} ({capitalize(currentMonthName)})
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* Card 1: Available Balance (Main Account) */}
+            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg min-w-0">
+              <p className="text-lg font-bold uppercase tracking-wider text-brand-primary mb-2">
+                {t('dashboard.availableBalance')}
+              </p>
+              <AccountBalanceCarousel accounts={accounts} formatCurrency={formatCurrency} />
+            </div>
+
+            {/* Card 2: Monthly Income */}
+            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
+              <p className="text-lg font-bold uppercase tracking-wider text-green-500 mb-2">
+                {t('dashboard.monthlyIncome')}
+              </p>
+              <h3 className="text-3xl font-bold text-white">
+                {formatCurrency(monthlySummary?.current?.totalIncome || 0)}
+              </h3>
+              {incomeVariation !== null && (
+                <p className={`mt-2 text-xs flex items-center gap-1 ${Number(incomeVariation) >= 0 ? 'text-green-500' : 'text-red-400'}`}>
+                  {Number(incomeVariation) >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {Number(incomeVariation) >= 0 ? '+' : ''}{incomeVariation}% {t('dashboard.comparedToPreviousMonth')}
+                </p>
+              )}
+            </div>
+
+            {/* Card 3: Monthly Expenses */}
+            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
+              <p className="text-lg font-bold uppercase tracking-wider text-red-500 mb-2">
+                {t('dashboard.monthlyExpenses')}
+              </p>
+              <h3 className="text-3xl font-bold text-white">
+                {formatCurrency(monthlySummary?.current?.totalSpent || 0)}
+              </h3>
+              {expenseVariation !== null && (
+                <p className={`mt-2 text-xs flex items-center gap-1 ${Number(expenseVariation) <= 0 ? 'text-green-500' : 'text-red-400'}`}>
+                  {Number(expenseVariation) >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {Number(expenseVariation) >= 0 ? '+' : ''}{expenseVariation}% {t('dashboard.comparedToPreviousMonth')}
+                </p>
+              )}
+            </div>
+
           </div>
-        ) : (
-          <p className="text-gray-400">{t('dashboard.loadingSummary')}</p>
-        )}
+        </div>
         
-        {/* Row 2: Chart & Actions/Accounts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto">
-          {/* Chart (2/3) */}
-          <div className="lg:col-span-2 min-h-[400px]">
+        {/* Row 2: Actions (left) + Chart (right) */}
+        <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+          {/* Left Column: Actions */}
+          <div className="flex flex-col gap-4 lg:w-[380px] shrink-0">
+             <DashboardAction 
+                variant="success" 
+                label={t('common.income')} 
+                onClick={() => handleOpenModal('INCOME')} 
+             />
+
+             <DashboardAction 
+                variant="primary" 
+                label={t('common.transfers')} 
+                onClick={() => handleOpenModal('TRANSFER')} 
+             />
+
+             <DashboardAction 
+                variant="danger" 
+                label={t('common.expenses')} 
+                onClick={() => handleOpenModal('EXPENSE')} 
+             />
+          </div>
+
+          {/* Right Column: Chart */}
+          <div className="flex-1 min-h-[300px]">
             <Card className="p-6 h-full flex flex-col bg-brand-card rounded-2xl border border-brand-border/30 shadow-lg">
-              <PageTitle level={2} className="text-xl font-bold mb-6 text-white">{t('dashboard.charts')}</PageTitle>
               <div className="flex-1 min-h-0">
                 {allTransactions.length > 0 ? (
                   <TransactionChart transactions={allTransactions} />
@@ -385,70 +337,9 @@ function DashboardPage() {
               </div>
             </Card>
           </div>
-
-          {/* Right Column (1/3): Actions & Accounts */}
-          <div className="lg:col-span-1 flex flex-col gap-6">
-              {/* Actions */}
-              <div className="flex flex-col gap-4">
-                 <DashboardAction 
-                    variant="success" 
-                    label={t('common.income')} 
-                    onClick={() => handleOpenModal('INCOME')} 
-                 />
-
-                 <DashboardAction 
-                    variant="primary" 
-                    label={t('common.transfers')} 
-                    onClick={() => handleOpenModal('TRANSFER')} 
-                 />
-
-                 <DashboardAction 
-                    variant="danger" 
-                    label={t('common.expenses')} 
-                    onClick={() => handleOpenModal('EXPENSE')} 
-                 />
-              </div>
-
-               {/* Accounts List */}
-                <Card className="p-6 bg-brand-card rounded-2xl border border-brand-border/30 shadow-lg flex-1">
-                    <div className="flex justify-between items-center mb-6">
-                        <PageTitle 
-                          level={2} 
-                          className="text-xl font-bold text-white cursor-pointer hover:text-brand-primary transition-colors"
-                          onClick={handleOpenAccountsList}
-                        >
-                          {t('dashboard.accounts')}
-                        </PageTitle>
-                        <button 
-                        onClick={() => handleOpenAccountForm(null)} 
-                        className="text-brand-primary hover:text-brand-primary-hover transition-colors cursor-pointer"
-                        title={t('dashboard.newAccount')}
-                        >
-                        <PlusCircle size={24} />
-                        </button>
-                    </div>
-                    <div className="space-y-4 max-h-[220px] overflow-y-auto pr-2">
-                        {accounts.length > 0 ? accounts.map(account => (
-                        <div 
-                          key={account.id} 
-                          className="flex justify-between items-center p-3 rounded-xl bg-brand-dark/30 border border-brand-border/20 hover:border-brand-border/50 transition-colors group cursor-pointer"
-                          onClick={() => handleOpenAccountForm(account)}
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="w-1 h-8 bg-brand-primary rounded-full"></div>
-                                <p className="font-medium text-gray-200 group-hover:text-white transition-colors">{account.name}</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <p className="text-gray-300 font-mono font-bold">{formatCurrency(account.currentBalance)}</p>
-                            </div>
-                        </div>
-                        )) : <p className="text-gray-400 text-center py-4">{t('dashboard.noAccounts')}</p>}
-                    </div>
-                </Card>
-          </div>
         </div>
 
-        {/* Row 3: Transactions Full Width */}
+        {/* Row 3: Recent Transactions */}
         <div className="grid grid-cols-1">
             <Card className="p-6 bg-brand-card rounded-2xl border border-brand-border/30 shadow-lg min-h-[300px]">
                 <div className="flex justify-between items-center mb-6">
@@ -488,7 +379,7 @@ function DashboardPage() {
 
       </div>
 
-      {/* Modal de Transação */}
+      {/* Transaction Modal */}
       <Modal isOpen={isTransactionModalOpen} onCancel={handleCloseModal}>
         <TransactionForm
           onSave={handleSaveTransaction}
@@ -496,29 +387,6 @@ function DashboardPage() {
           transaction={transactionToEdit}
           accounts={accounts}
           categories={categories}
-        />
-      </Modal>
-
-      {/* Modal de Formulário de Conta (Criar/Editar) */}
-      <Modal isOpen={isAccountFormModalOpen} onCancel={handleCloseAccountForm}>
-        <PageTitle level={2} className="text-xl font-semibold mb-4 text-white">
-          {accountToEdit ? t('dashboard.editAccount') : t('dashboard.newAccount')}
-        </PageTitle>
-        <AccountForm 
-          account={accountToEdit} 
-          onSave={handleSaveAccount} 
-          onCancel={handleCloseAccountForm}
-          onDelete={handleDeleteAccount}
-        />
-      </Modal>
-
-      {/* All Accounts Modal */}
-      <Modal isOpen={isAccountsListModalOpen} onCancel={handleCloseAccountsList}>
-        <PageTitle level={2} className="text-xl font-semibold mb-4 text-white">{t('dashboard.allAccounts')}</PageTitle>
-        <AccountsListModal 
-          accounts={accounts} 
-          onEdit={handleOpenAccountForm} 
-          onClose={handleCloseAccountsList} 
         />
       </Modal>
     </>
