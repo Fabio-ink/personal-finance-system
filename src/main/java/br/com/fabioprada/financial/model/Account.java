@@ -1,6 +1,7 @@
 package br.com.fabioprada.financial.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +24,10 @@ public class Account {
 
     @Column(nullable = false)
     private BigDecimal initialBalance;
+
+    @Column(nullable = false)
+    @JsonProperty("isMain")
+    private Boolean isMain = false;
 
     @Formula("initial_balance + " +
             "(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.in_account_id = id) - " +

@@ -40,6 +40,7 @@ public class AccountController {
                 .map(account -> {
                     account.setName(accountDetails.getName());
                     account.setInitialBalance(accountDetails.getInitialBalance());
+                    account.setIsMain(Boolean.TRUE.equals(accountDetails.getIsMain()));
                     Account updated = accountService.save(account);
                     return ResponseEntity.ok(updated);
                 }).orElse(ResponseEntity.notFound().build());

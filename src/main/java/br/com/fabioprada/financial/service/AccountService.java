@@ -24,7 +24,7 @@ public class AccountService {
 
     public List<Account> findAll() {
         return userContextService.getCurrentUser()
-                .map(user -> accountRepository.findAllByUserId(user.getId()))
+                .map(user -> accountRepository.findAllByUserIdOrderByIdAsc(user.getId()))
                 .orElse(Collections.emptyList());
     }
 
@@ -56,7 +56,19 @@ public class AccountService {
             account.setCurrentBalance(account.getInitialBalance());
         }
 
-        return accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
+
+        if (Boolean.TRUE.equals(savedAccount.getIsMain())) {
+            List<Account> userAccounts = accountRepository.findAllByUserId(user.getId());
+            for (Account acc : userAccounts) {
+                if (!acc.getId().equals(savedAccount.getId()) && Boolean.TRUE.equals(acc.getIsMain())) {
+                    acc.setIsMain(false);
+                    accountRepository.save(acc);
+                }
+            }
+        }
+
+        return savedAccount;
     }
 
     public void deleteById(Long id) {
