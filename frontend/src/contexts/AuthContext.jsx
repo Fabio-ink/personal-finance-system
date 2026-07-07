@@ -17,8 +17,12 @@ export const AuthProvider = ({ children }) => {
     const storedLocalMode = localStorage.getItem('isLocalMode') === 'true';
     if (storedToken) {
       try {
-        api.defaults.headers.Authorization = `Bearer ${storedToken}`;
         const decodedUser = jwtDecode(storedToken);
+        const currentTime = Date.now() / 1000;
+        if (decodedUser.exp && decodedUser.exp < currentTime) {
+          throw new Error("Token expired");
+        }
+        api.defaults.headers.Authorization = `Bearer ${storedToken}`;
         setUser(decodedUser);
         setToken(storedToken);
         setIsAuthenticated(true);
