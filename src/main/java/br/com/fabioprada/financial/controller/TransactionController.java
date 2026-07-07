@@ -50,18 +50,9 @@ public class TransactionController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Transaction> updated(@PathVariable Long id, @RequestBody Transaction transactionDetails) {
-        return transactionService.findByIdAndUserId(id)
-                .map(transaction -> {
-                    transaction.setName(transactionDetails.getName());
-                    transaction.setAmount(transactionDetails.getAmount());
-                    transaction.setCreationDate(transactionDetails.getCreationDate());
-                    transaction.setTransactionType(transactionDetails.getTransactionType());
-                    transaction.setCategory(transactionDetails.getCategory());
-                    transaction.setOutAccount(transactionDetails.getOutAccount());
-                    transaction.setInAccount(transactionDetails.getInAccount());
-                    Transaction updated = transactionService.save(transaction);
-                    return ResponseEntity.ok(updated);
-                }).orElse(ResponseEntity.notFound().build());
+        return transactionService.update(id, transactionDetails)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

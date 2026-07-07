@@ -204,32 +204,52 @@ public class TransactionService {
     }
 
     @Transactional
+    public Optional<Transaction> update(Long id, Transaction transactionDetails) {
+        return findByIdAndUserId(id).map(transaction -> {
+            BigDecimal oldAmount = transaction.getAmount();
+            Account oldInAccount = transaction.getInAccount();
+            Account oldOutAccount = transaction.getOutAccount();
+
+            transaction.setName(transactionDetails.getName());
+            transaction.setAmount(transactionDetails.getAmount());
+            transaction.setCreationDate(transactionDetails.getCreationDate());
+            transaction.setTransactionType(transactionDetails.getTransactionType());
+            transaction.setCategory(transactionDetails.getCategory());
+            transaction.setOutAccount(transactionDetails.getOutAccount());
+            transaction.setInAccount(transactionDetails.getInAccount());
+
+            Transaction saved = transactionRepository.save(transaction);
+            updateBalancesForUpdate(saved, oldAmount, oldInAccount, oldOutAccount);
+            return saved;
+        });
+    }
+
+    @Transactional
     public Transaction save(Transaction transaction) {
         User user = userContextService.getCurrentUserOrThrow();
         transaction.setUser(user);
 
-        if (transaction.getTotalInstallments() != null && transaction.getTotalInstallments() > 1) {
+        if (transaction.getTotalInstallments() != null && transaction.getTotalInstallments() > 1 && transaction.getId() == null) {
             return saveInstallments(transaction, user);
         }
 
-        return transactionRepository.save(transaction);
+        Transaction saved = transactionRepository.save(transaction);
+        updateBalancesForSave(saved);
+        return saved;
     }
 
     private Transaction saveInstallments(Transaction transaction, User user) {
-        // Ensure the first transaction has installment number 1
         if (transaction.getInstallmentNumber() == null) {
             transaction.setInstallmentNumber(1);
         }
 
-        // Calculate installment amount
         BigDecimal installmentAmount = transaction.getAmount().divide(
                 BigDecimal.valueOf(transaction.getTotalInstallments()), 2, java.math.RoundingMode.HALF_UP);
         transaction.setAmount(installmentAmount);
 
-        // Save the first installment
         Transaction savedTransaction = transactionRepository.save(transaction);
+        updateBalancesForSave(savedTransaction);
 
-        // Create and save subsequent installments
         for (int i = 2; i <= transaction.getTotalInstallments(); i++) {
             Transaction installment = new Transaction();
             installment.setUser(user);
@@ -241,27 +261,80 @@ public class TransactionService {
             installment.setInAccount(transaction.getInAccount());
             installment.setTotalInstallments(transaction.getTotalInstallments());
             installment.setInstallmentNumber(i);
-
-            // Increment date by 1 month for each installment
             installment.setCreationDate(transaction.getCreationDate().plusMonths(i - 1));
 
-            transactionRepository.save(installment);
+            Transaction savedInstallment = transactionRepository.save(installment);
+            updateBalancesForSave(savedInstallment);
         }
         return savedTransaction;
     }
 
+    @Transactional
     public void deleteById(Long id) {
         userContextService.getCurrentUser().ifPresent(user -> transactionRepository.findByIdAndUserId(id, user.getId())
-                .ifPresent(transactionRepository::delete));
+                .ifPresent(transaction -> {
+                    updateBalancesForDelete(transaction);
+                    transactionRepository.delete(transaction);
+                }));
     }
 
+    @Transactional
     public void deleteMultiple(List<Long> ids) {
         userContextService.getCurrentUser().ifPresent(user -> {
             Long userId = user.getId();
             for (Long id : ids) {
-                transactionRepository.findByIdAndUserId(id, userId).ifPresent(transactionRepository::delete);
+                transactionRepository.findByIdAndUserId(id, userId).ifPresent(transaction -> {
+                    updateBalancesForDelete(transaction);
+                    transactionRepository.delete(transaction);
+                });
             }
         });
+    }
+
+    private void updateAccountBalance(Account account, BigDecimal amount, boolean isAddition) {
+        if (account == null) return;
+        Account acc = accountRepository.findById(account.getId()).orElse(account);
+        BigDecimal current = acc.getCurrentBalance() != null ? acc.getCurrentBalance() : BigDecimal.ZERO;
+        if (isAddition) {
+            acc.setCurrentBalance(current.add(amount));
+        } else {
+            acc.setCurrentBalance(current.subtract(amount));
+        }
+        accountRepository.save(acc);
+    }
+
+    private void updateBalancesForSave(Transaction transaction) {
+        if (transaction.getInAccount() != null) {
+            updateAccountBalance(transaction.getInAccount(), transaction.getAmount(), true);
+        }
+        if (transaction.getOutAccount() != null) {
+            updateAccountBalance(transaction.getOutAccount(), transaction.getAmount(), false);
+        }
+    }
+
+    private void updateBalancesForDelete(Transaction transaction) {
+        if (transaction.getInAccount() != null) {
+            updateAccountBalance(transaction.getInAccount(), transaction.getAmount(), false);
+        }
+        if (transaction.getOutAccount() != null) {
+            updateAccountBalance(transaction.getOutAccount(), transaction.getAmount(), true);
+        }
+    }
+
+    private void updateBalancesForUpdate(Transaction newTx, BigDecimal oldAmount, Account oldInAcc, Account oldOutAcc) {
+        if (oldInAcc != null) {
+            updateAccountBalance(oldInAcc, oldAmount, false);
+        }
+        if (oldOutAcc != null) {
+            updateAccountBalance(oldOutAcc, oldAmount, true);
+        }
+
+        if (newTx.getInAccount() != null) {
+            updateAccountBalance(newTx.getInAccount(), newTx.getAmount(), true);
+        }
+        if (newTx.getOutAccount() != null) {
+            updateAccountBalance(newTx.getOutAccount(), newTx.getAmount(), false);
+        }
     }
 
     @Transactional

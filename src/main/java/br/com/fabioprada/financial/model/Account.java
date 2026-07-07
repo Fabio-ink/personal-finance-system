@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import org.hibernate.annotations.Formula;
 
 @Entity
 @Table(name = "accounts")
@@ -29,10 +28,8 @@ public class Account {
     @JsonProperty("isMain")
     private Boolean isMain = false;
 
-    @Formula("initial_balance + " +
-            "(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.in_account_id = id) - " +
-            "(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.out_account_id = id)")
-    private BigDecimal currentBalance;
+    @Column(name = "current_balance")
+    private BigDecimal currentBalance = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
