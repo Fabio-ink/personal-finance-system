@@ -59,8 +59,23 @@ export async function deleteLocalTransaction(id) {
     const transactionObj = db.transaction(['transactions'], 'readwrite');
     const store = transactionObj.objectStore('transactions');
     const request = store.delete(id);
-
-    request.onsuccess = () => resolve();
+    request.onsuccess = () => {
+      const numericId = Number(id);
+      if (!isNaN(numericId) && typeof id !== 'number') {
+        const req2 = store.delete(numericId);
+        req2.onsuccess = () => resolve();
+        req2.onerror = (event) => reject(event.target.error);
+      } else {
+        const stringId = String(id);
+        if (stringId !== String(numericId)) {
+          const req2 = store.delete(stringId);
+          req2.onsuccess = () => resolve();
+          req2.onerror = (event) => reject(event.target.error);
+        } else {
+          resolve();
+        }
+      }
+    };
     request.onerror = (event) => reject(event.target.error);
   });
 }

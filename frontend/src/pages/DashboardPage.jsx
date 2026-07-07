@@ -18,7 +18,7 @@ import { ptBR, enUS } from 'date-fns/locale';
 import api from '../services/api';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { getLocalTransactions, getCachedAccounts, getCachedCategories } from '../services/db';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Info } from 'lucide-react';
 
 const calculateLocalSummary = (transactions) => {
   const getMonthData = (date) => {
@@ -238,6 +238,8 @@ function DashboardPage() {
     return ((monthlySummary.current.totalSpent - prev) / prev * 100).toFixed(0);
   }, [monthlySummary]);
 
+
+
   if (loading) {
     return <Spinner />;
   }
@@ -258,23 +260,45 @@ function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             {/* Card 1: Available Balance (Main Account) */}
-            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg min-w-0">
-              <p className="text-lg font-bold uppercase tracking-wider text-brand-primary mb-2">
-                {t('dashboard.availableBalance')}
-              </p>
-              <AccountBalanceCarousel accounts={accounts} formatCurrency={formatCurrency} />
+            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg min-w-0 min-h-[170px] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-base font-normal text-white/90">
+                    {t('dashboard.availableBalance')}
+                  </span>
+                  <div className="relative group flex items-center">
+                    <Info size={14} className="text-text-muted cursor-help animate-pulse" />
+                    <div className="absolute left-1/2 bottom-full mb-3 -translate-x-1/2 w-72 bg-brand-card/95 backdrop-blur-md border border-brand-border/80 text-xs text-gray-300 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none text-center font-normal tracking-normal normal-case leading-relaxed opacity-0 scale-95 origin-bottom transition-all duration-200 group-hover:opacity-100 group-hover:scale-100">
+                      {t('dashboard.availableBalanceDesc')}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-6 border-transparent border-t-brand-card/95"></div>
+                    </div>
+                  </div>
+                </div>
+                <AccountBalanceCarousel accounts={accounts} formatCurrency={formatCurrency} />
+              </div>
             </div>
 
             {/* Card 2: Monthly Income */}
-            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
-              <p className="text-lg font-bold uppercase tracking-wider text-green-500 mb-2">
-                {t('dashboard.monthlyIncome')}
-              </p>
-              <h3 className="text-3xl font-bold text-white">
-                {formatCurrency(monthlySummary?.current?.totalIncome || 0)}
-              </h3>
+            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg min-h-[170px] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-base font-normal text-white/90">
+                    {t('dashboard.monthlyIncome')}
+                  </span>
+                  <div className="relative group flex items-center">
+                    <Info size={14} className="text-text-muted cursor-help animate-pulse" />
+                    <div className="absolute left-1/2 bottom-full mb-3 -translate-x-1/2 w-72 bg-brand-card/95 backdrop-blur-md border border-brand-border/80 text-xs text-gray-300 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none text-center font-normal tracking-normal normal-case leading-relaxed opacity-0 scale-95 origin-bottom transition-all duration-200 group-hover:opacity-100 group-hover:scale-100">
+                      {t('dashboard.monthlyIncomeDesc')}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-6 border-transparent border-t-brand-card/95"></div>
+                    </div>
+                  </div>
+                </div>
+                <h3 className="text-4xl font-light text-brand-success">
+                  {formatCurrency(monthlySummary?.current?.totalIncome || 0)}
+                </h3>
+              </div>
               {incomeVariation !== null && (
-                <p className={`mt-2 text-xs flex items-center gap-1 ${Number(incomeVariation) >= 0 ? 'text-green-500' : 'text-red-400'}`}>
+                <p className="mt-2 text-xs flex items-center gap-1 text-text-muted">
                   {Number(incomeVariation) >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                   {Number(incomeVariation) >= 0 ? '+' : ''}{incomeVariation}% {t('dashboard.comparedToPreviousMonth')}
                 </p>
@@ -282,15 +306,26 @@ function DashboardPage() {
             </div>
 
             {/* Card 3: Monthly Expenses */}
-            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
-              <p className="text-lg font-bold uppercase tracking-wider text-red-500 mb-2">
-                {t('dashboard.monthlyExpenses')}
-              </p>
-              <h3 className="text-3xl font-bold text-white">
-                {formatCurrency(monthlySummary?.current?.totalSpent || 0)}
-              </h3>
+            <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg min-h-[170px] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-base font-normal text-white/90">
+                    {t('dashboard.monthlyExpenses')}
+                  </span>
+                  <div className="relative group flex items-center">
+                    <Info size={14} className="text-text-muted cursor-help animate-pulse" />
+                    <div className="absolute left-1/2 bottom-full mb-3 -translate-x-1/2 w-72 bg-brand-card/95 backdrop-blur-md border border-brand-border/80 text-xs text-gray-300 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none text-center font-normal tracking-normal normal-case leading-relaxed opacity-0 scale-95 origin-bottom transition-all duration-200 group-hover:opacity-100 group-hover:scale-100">
+                      {t('dashboard.monthlyExpensesDesc')}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-6 border-transparent border-t-brand-card/95"></div>
+                    </div>
+                  </div>
+                </div>
+                <h3 className="text-4xl font-light text-brand-danger">
+                  {formatCurrency(monthlySummary?.current?.totalSpent || 0)}
+                </h3>
+              </div>
               {expenseVariation !== null && (
-                <p className={`mt-2 text-xs flex items-center gap-1 ${Number(expenseVariation) <= 0 ? 'text-green-500' : 'text-red-400'}`}>
+                <p className="mt-2 text-xs flex items-center gap-1 text-text-muted">
                   {Number(expenseVariation) >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                   {Number(expenseVariation) >= 0 ? '+' : ''}{expenseVariation}% {t('dashboard.comparedToPreviousMonth')}
                 </p>
@@ -360,13 +395,13 @@ function DashboardPage() {
                     onDelete={async (transaction) => {
                         if (window.confirm(t('dashboard.deleteTransactionConfirm'))) {
                             try {
-                                if (isLocalMode) {
-                                  const { deleteLocalTransaction } = await import('../services/db');
-                                  await deleteLocalTransaction(transaction.id);
-                                  fetchAllData();
-                                  return;
+                                const { deleteLocalTransaction } = await import('../services/db');
+                                await deleteLocalTransaction(transaction.id);
+                                if (!isLocalMode) {
+                                  await api.delete(`/transactions/${transaction.id}`).catch((err) => {
+                                    console.warn("Delete on server failed or already deleted:", err);
+                                  });
                                 }
-                                await api.delete(`/transactions/${transaction.id}`);
                                 fetchAllData();
                             } catch (error) {
                                 console.error("Error deleting transaction", error);
