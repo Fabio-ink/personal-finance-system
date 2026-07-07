@@ -1,0 +1,24 @@
+export const getAccountColor = (name) => {
+  if (!name) return '#8564f6';
+  const lower = name.toLowerCase();
+  if (lower.includes('nubank')) return '#820ad1';
+  if (lower.includes('inter')) return '#ff7a00';
+  if (lower.includes('itaú') || lower.includes('itau')) return '#ec7000';
+  if (lower.includes('banco do brasil') || lower.includes('bb') || lower.endsWith('bb')) return '#ffd700';
+  if (lower.includes('bradesco')) return '#cc092f';
+  if (lower.includes('caixa')) return '#005ca9';
+  if (lower.includes('santander')) return '#ec0000';
+  if (lower.includes('c6')) return '#ffffff';
+  if (lower.includes('xp')) return '#ffd700';
+  if (lower.includes('btg')) return '#00e5ff';
+  if (lower.includes('mercado pago') || lower.includes('mercadopago')) return '#009ee3';
+  if (lower.includes('picpay')) return '#21c25e';
+  if (lower.includes('pagbank') || lower.includes('pagseguro')) return '#00b050';
+  if (lower.includes('neon')) return '#00e5ff';
+  if (lower.includes('sicoob') || lower.includes('sico')) return '#00ae9d';
+  if (lower.includes('bipa') || lower.includes('bin')) return '#f3ba2f';
+  if (lower.includes('mercado bitcoin') || lower.includes('mercadobitcoin')) return '#ff6b00';
+  if (lower.includes('rico')) return '#ff5a00';
+  if (lower.includes('carteira') || lower.includes('dinheiro')) return '#8564f6';
+  return '#8564f6';
+};

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getAccountColor } from '../utils/accountUtils';
 
 function AccountBalanceCarousel({ accounts = [], formatCurrency }) {
   const scrollRef = useRef(null);
@@ -67,7 +68,7 @@ function AccountBalanceCarousel({ accounts = [], formatCurrency }) {
       <p className="text-xs text-gray-400 mb-0.5">
         {displayAccount.name}
       </p>
-      <h3 className="text-3xl font-bold text-white">
+      <h3 className="text-4xl font-light text-white">
         {formatCurrency(displayAccount.currentBalance ?? displayAccount.initialBalance ?? 0)}
       </h3>
 
@@ -91,13 +92,14 @@ function AccountBalanceCarousel({ accounts = [], formatCurrency }) {
             {secondaryAccounts.map(acc => (
               <div
                 key={acc.id}
-                className="shrink-0 border-l-2 border-brand-border/50 pl-3"
+                className="shrink-0 border-l-2 pl-3 flex flex-col justify-center"
+                style={{ borderColor: getAccountColor(acc.name) }}
               >
-                <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-0.5 whitespace-nowrap">
-                  {acc.name}
-                </p>
-                <p className="text-sm font-bold text-gray-300 font-mono whitespace-nowrap">
+                <p className="text-sm font-normal text-gray-300 font-mono whitespace-nowrap">
                   {formatCurrency(acc.currentBalance ?? acc.initialBalance ?? 0)}
+                </p>
+                <p className="text-[10px] tracking-wider text-gray-500 mb-0.5 whitespace-nowrap">
+                  {acc.name}
                 </p>
               </div>
             ))}

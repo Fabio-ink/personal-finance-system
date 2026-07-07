@@ -24,7 +24,7 @@ import {
   Cell
 } from 'recharts';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#6b7280'];
+const COLORS = ['#3b82f6', '#d0e96a', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#6b7280'];
 
 const calculateLocalReport = (transactions, planning, categories, month, year) => {
   const currentMonthTx = transactions.filter(t => {
@@ -468,7 +468,7 @@ function ReportsPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
-              <p className="text-sm font-semibold uppercase tracking-wider text-green-500 mb-1">
+              <p className="text-sm font-semibold uppercase tracking-wider text-brand-success mb-1">
                 {t('reports.totalIncome')}
               </p>
               <h3 className="text-3xl font-bold text-white">
@@ -566,7 +566,7 @@ function ReportsPage() {
                       <YAxis stroke="#9ca3af" />
                       <Tooltip formatter={(value) => formatCurrency(value)} />
                       <Legend />
-                      <Bar dataKey={t('common.income')} fill="#10b981" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={handleChartClick} />
+                      <Bar dataKey={t('common.income')} fill="#d0e96a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={handleChartClick} />
                       <Bar dataKey={t('common.expenses')} fill="#ef4444" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={handleChartClick} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -613,8 +613,8 @@ function ReportsPage() {
 
                       // Determine colors and status message
                       let spentColor = isInvestment ? 'text-brand-success' : 'text-red-400';
-                      let barColorClass = 'bg-green-500';
-                      let textColorClass = 'text-green-500';
+                      let barColorClass = 'bg-brand-success';
+                      let textColorClass = 'text-brand-success';
                       let statusText = `${t('reports.withinLimit')} (${ratio.toFixed(0)}%)`;
 
                       if (isInvestment) {
@@ -623,8 +623,8 @@ function ReportsPage() {
                           textColorClass = 'text-brand-success';
                           statusText = `${t('reports.investmentExceeded')} (${(ratio - 100).toFixed(0)}%+)`;
                         } else {
-                          barColorClass = 'bg-green-500';
-                          textColorClass = 'text-green-500';
+                          barColorClass = 'bg-brand-success';
+                          textColorClass = 'text-brand-success';
                           statusText = `${t('reports.withinLimit')} (${ratio.toFixed(0)}%)`;
                         }
                       } else {
@@ -637,8 +637,8 @@ function ReportsPage() {
                           textColorClass = 'text-brand-warning';
                           statusText = `${t('reports.warningLimit')} (${ratio.toFixed(0)}%)`;
                         } else {
-                          barColorClass = 'bg-green-500';
-                          textColorClass = 'text-green-500';
+                          barColorClass = 'bg-brand-success';
+                          textColorClass = 'text-brand-success';
                           statusText = `${t('reports.withinLimit')} (${ratio.toFixed(0)}%)`;
                         }
                       }

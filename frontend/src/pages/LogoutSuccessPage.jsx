@@ -13,8 +13,8 @@ const LogoutSuccessPage = () => {
       </div>
 
       <div className="relative z-10 w-full max-w-md p-8 text-center flex flex-col items-center">
-        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6 animate-bounce-slow">
-            <CheckCircle size={40} className="text-green-500" />
+        <div className="w-20 h-20 bg-brand-success/20 rounded-full flex items-center justify-center mb-6 animate-bounce-slow">
+            <CheckCircle size={40} className="text-brand-success" />
         </div>
         
         <h1 className="text-3xl font-bold text-white mb-2">You've logged out</h1>

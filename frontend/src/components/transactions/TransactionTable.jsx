@@ -50,7 +50,7 @@ const TransactionTable = ({
                                         <p className="text-gray-900 dark:text-gray-200 whitespace-no-wrap">{transaction.name}</p>
                                     </td>
                                     <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
-                                        <p className={`whitespace-no-wrap ${transaction.transactionType === 'EXPENSE' ? 'text-red-600' : 'text-green-600'}`}>
+                                        <p className={`whitespace-no-wrap ${transaction.transactionType === 'EXPENSE' ? 'text-red-600' : 'text-brand-success'}`}>
                                             {formatCurrency(transaction.amount)}
                                         </p>
                                     </td>

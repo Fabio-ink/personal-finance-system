@@ -36,7 +36,7 @@ const ForgotPasswordPage = () => {
         <PageTitle className="text-center text-3xl text-white">Recover Password</PageTitle>
         
         {message && (
-          <div className="bg-green-500/10 border border-green-500/50 text-green-500 p-3 rounded-md text-sm text-center">
+          <div className="bg-brand-success/10 border border-brand-success/50 text-brand-success p-3 rounded-md text-sm text-center">
             {message}
           </div>
         )}

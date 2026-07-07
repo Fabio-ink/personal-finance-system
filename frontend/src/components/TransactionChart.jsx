@@ -157,15 +157,14 @@ const TransactionChart = ({ transactions }) => {
                             formatter={(value) => <span className="text-gray-400 text-sm ml-1">{value}</span>}
                         />
                         
-                        {/* Income - Green/Teal */}
                         <Line 
                             name={t('dashboard.income')}
                             type="monotone" 
                             dataKey="income" 
-                            stroke="#10B981" 
+                            stroke="#d0e96a" 
                             strokeWidth={2} 
                             dot={false}
-                            activeDot={{ r: 6, fill: '#10B981', stroke: '#fff' }}
+                            activeDot={{ r: 6, fill: '#d0e96a', stroke: '#fff' }}
                         />
 
                         {/* Transfers - Purple */}

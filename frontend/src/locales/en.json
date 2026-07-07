@@ -84,9 +84,12 @@
     "expenses": "Expenses",
     "transfers": "Transfers",
     "availableBalance": "Available Balance",
+    "availableBalanceDesc": "This is the consolidated available balance, summing up the current balance of all your active bank accounts in your wallet.",
     "currentMonth": "Current month",
-    "monthlyIncome": "Monthly Income",
-    "monthlyExpenses": "Monthly Expenses",
+    "monthlyIncome": "Income",
+    "monthlyIncomeDesc": "Cumulative total of all inflows and revenues received during the current month in your accounts.",
+    "monthlyExpenses": "Expenses",
+    "monthlyExpensesDesc": "Cumulative total of all outflows and expenses paid during the current month in your accounts.",
     "comparedToPreviousMonth": "compared to last month"
   },
   "transactions": {

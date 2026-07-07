@@ -84,9 +84,12 @@
     "expenses": "Despesas",
     "transfers": "Transferências",
     "availableBalance": "Saldo Disponível",
+    "availableBalanceDesc": "Este é o saldo consolidado disponível, somando o saldo atual de todas as suas contas bancárias ativas na carteira.",
     "currentMonth": "Mês atual",
-    "monthlyIncome": "Receitas do Mês",
-    "monthlyExpenses": "Despesas do Mês",
+    "monthlyIncome": "Receitas",
+    "monthlyIncomeDesc": "Total acumulado de todas as entradas e receitas recebidas durante o mês atual nas suas contas.",
+    "monthlyExpenses": "Despesas",
+    "monthlyExpensesDesc": "Total acumulado de todas as saídas e gastos pagos durante o mês atual nas suas contas.",
     "comparedToPreviousMonth": "em relação ao mês passado"
   },
   "transactions": {

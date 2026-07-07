@@ -413,7 +413,7 @@ function TransactionsPage() {
 
                     <div className="flex flex-col items-center justify-center">
                         <span className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{t('planning.pageTotal')}</span>
-                        <span className={`text-lg font-bold ${pageTotal < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        <span className={`text-lg font-bold ${pageTotal < 0 ? 'text-red-600' : 'text-brand-success'}`}>
                             {formatCurrency(pageTotal)}
                         </span>
                     </div>
