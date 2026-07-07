@@ -156,7 +156,7 @@ function DashboardPage() {
 
       const [summaryRes, transRes, accountsRes, categoriesRes] = await Promise.all([
         api.get('/dashboard/summary'), 
-        api.get('/transactions?size=2000'),     
+        api.get('/transactions?size=500'),     
         api.get('/accounts'),         
         api.get('/categories')        
       ]);
