@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @Entity
 @Table(name = "transactions", indexes = {
         @Index(name = "idx_transaction_user_date", columnList = "user_id, creation_date"),
-        @Index(name = "idx_transaction_user_category", columnList = "user_id, category_id")
+        @Index(name = "idx_transaction_user_category", columnList = "user_id, category_id"),
+        @Index(name = "idx_transaction_in_account", columnList = "in_account_id"),
+        @Index(name = "idx_transaction_out_account", columnList = "out_account_id")
 })
 @CrossOrigin(origins = "http://localhost:5173") // Permite acesso do nosso frontend
 @Data
