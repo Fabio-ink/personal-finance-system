@@ -71,30 +71,25 @@ public class TransactionController {
     }
 
     @GetMapping("/export")
-    public ResponseEntity<?> export(
+    public ResponseEntity<InputStreamResource> export(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String transactionType) {
 
-        try {
-            ByteArrayInputStream in = transactionService.exportTransactions(name, startDate, endDate, categoryId,
-                    transactionType);
+        ByteArrayInputStream in = transactionService.exportTransactions(name, startDate, endDate, categoryId,
+                transactionType);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "attachment; filename=transactions.xlsx");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=transactions.xlsx");
 
-            return ResponseEntity
-                    .ok()
-                    .headers(headers)
-                    .contentType(
-                            MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                    .body(new InputStreamResource(in));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Error exporting to Excel: " + e.getMessage() + " | Type: " + e.getClass().getName());
-        }
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 
     @PostMapping("/import")
