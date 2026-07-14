@@ -36,14 +36,12 @@ public class AccountController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Account> updated(@PathVariable Long id, @RequestBody Account accountDetails) {
-        return accountService.findById(id)
-                .map(account -> {
-                    account.setName(accountDetails.getName());
-                    account.setInitialBalance(accountDetails.getInitialBalance());
-                    account.setIsMain(Boolean.TRUE.equals(accountDetails.getIsMain()));
-                    Account updated = accountService.save(account);
-                    return ResponseEntity.ok(updated);
-                }).orElse(ResponseEntity.notFound().build());
+        try {
+            Account updated = accountService.update(id, accountDetails);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")

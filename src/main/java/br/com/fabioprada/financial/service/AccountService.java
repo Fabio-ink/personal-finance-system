@@ -37,26 +37,43 @@ public class AccountService {
         User user = userContextService.getCurrentUserOrThrow();
         account.setUser(user);
 
-        if (account.getId() != null) {
-            // Existing account, adjust current balance based on initial balance change
-            Account existingAccount = accountRepository.findById(account.getId())
-                    .orElseThrow(() -> new RuntimeException("Account not found with id: " + account.getId()));
-
-            BigDecimal oldInitialBalance = existingAccount.getInitialBalance();
-            BigDecimal newInitialBalance = account.getInitialBalance();
-
-            if (oldInitialBalance.compareTo(newInitialBalance) != 0) {
-                BigDecimal difference = newInitialBalance.subtract(oldInitialBalance);
-                account.setCurrentBalance(existingAccount.getCurrentBalance().add(difference));
-            } else {
-                account.setCurrentBalance(existingAccount.getCurrentBalance());
-            }
-        } else {
-            // New account, set current balance to initial balance
+        if (account.getId() == null) {
             account.setCurrentBalance(account.getInitialBalance());
         }
 
         Account savedAccount = accountRepository.save(account);
+
+        if (Boolean.TRUE.equals(savedAccount.getIsMain())) {
+            List<Account> userAccounts = accountRepository.findAllByUserId(user.getId());
+            for (Account acc : userAccounts) {
+                if (!acc.getId().equals(savedAccount.getId()) && Boolean.TRUE.equals(acc.getIsMain())) {
+                    acc.setIsMain(false);
+                    accountRepository.save(acc);
+                }
+            }
+        }
+
+        return savedAccount;
+    }
+
+    public Account update(Long id, Account accountDetails) {
+        User user = userContextService.getCurrentUserOrThrow();
+        Account existingAccount = accountRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new RuntimeException("Account not found with id: " + id));
+
+        BigDecimal oldInitialBalance = existingAccount.getInitialBalance();
+        BigDecimal newInitialBalance = accountDetails.getInitialBalance();
+
+        existingAccount.setName(accountDetails.getName());
+        existingAccount.setInitialBalance(newInitialBalance);
+        existingAccount.setIsMain(Boolean.TRUE.equals(accountDetails.getIsMain()));
+
+        if (oldInitialBalance.compareTo(newInitialBalance) != 0) {
+            BigDecimal difference = newInitialBalance.subtract(oldInitialBalance);
+            existingAccount.setCurrentBalance(existingAccount.getCurrentBalance().add(difference));
+        }
+
+        Account savedAccount = accountRepository.save(existingAccount);
 
         if (Boolean.TRUE.equals(savedAccount.getIsMain())) {
             List<Account> userAccounts = accountRepository.findAllByUserId(user.getId());
