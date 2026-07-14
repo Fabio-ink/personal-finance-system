@@ -31,7 +31,7 @@ public class TransactionCategorizationService {
         }
 
         String finalCategoryName = categoryName;
-        return categoryRepository.findByNameAndUserId(finalCategoryName, user.getId())
+        return categoryRepository.findByNameIgnoreCaseAndUserId(finalCategoryName, user.getId())
                 .orElseGet(() -> {
                     Category newCategory = new Category();
                     newCategory.setName(finalCategoryName);

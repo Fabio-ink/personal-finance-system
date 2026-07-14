@@ -123,8 +123,8 @@ public class TransactionService {
 
                 // Handle Category
                 if (transaction.getCategory() != null && transaction.getCategory().getName() != null) {
-                    String categoryName = transaction.getCategory().getName();
-                    Category category = categoryRepository.findByNameAndUserId(categoryName, user.getId())
+                    String categoryName = transaction.getCategory().getName().trim();
+                    Category category = categoryRepository.findByNameIgnoreCaseAndUserId(categoryName, user.getId())
                             .orElseGet(() -> {
                                 Category newCategory = new Category();
                                 newCategory.setName(categoryName);
@@ -136,8 +136,8 @@ public class TransactionService {
 
                 // Handle Out Account
                 if (transaction.getOutAccount() != null && transaction.getOutAccount().getName() != null) {
-                    String accountName = transaction.getOutAccount().getName();
-                    Account account = accountRepository.findByNameAndUserId(accountName, user.getId())
+                    String accountName = transaction.getOutAccount().getName().trim();
+                    Account account = accountRepository.findByNameIgnoreCaseAndUserId(accountName, user.getId())
                             .orElseGet(() -> {
                                 Account newAccount = new Account();
                                 newAccount.setName(accountName);
@@ -151,8 +151,8 @@ public class TransactionService {
 
                 // Handle In Account
                 if (transaction.getInAccount() != null && transaction.getInAccount().getName() != null) {
-                    String accountName = transaction.getInAccount().getName();
-                    Account account = accountRepository.findByNameAndUserId(accountName, user.getId())
+                    String accountName = transaction.getInAccount().getName().trim();
+                    Account account = accountRepository.findByNameIgnoreCaseAndUserId(accountName, user.getId())
                             .orElseGet(() -> {
                                 Account newAccount = new Account();
                                 newAccount.setName(accountName);
@@ -173,8 +173,8 @@ public class TransactionService {
 
                 // Handle Category
                 if (planning.getCategory() != null && planning.getCategory().getName() != null) {
-                    String categoryName = planning.getCategory().getName();
-                    Category category = categoryRepository.findByNameAndUserId(categoryName, user.getId())
+                    String categoryName = planning.getCategory().getName().trim();
+                    Category category = categoryRepository.findByNameIgnoreCaseAndUserId(categoryName, user.getId())
                             .orElseGet(() -> {
                                 Category newCategory = new Category();
                                 newCategory.setName(categoryName);
@@ -362,7 +362,7 @@ public class TransactionService {
             Category category;
             if (dto.getCategoryName() != null && !dto.getCategoryName().trim().isEmpty()) {
                 String catName = dto.getCategoryName().trim();
-                category = categoryRepository.findByNameAndUserId(catName, user.getId())
+                category = categoryRepository.findByNameIgnoreCaseAndUserId(catName, user.getId())
                         .orElseGet(() -> {
                             Category newCat = new Category();
                             newCat.setName(catName);
@@ -376,7 +376,7 @@ public class TransactionService {
 
             if (dto.getInAccountName() != null && !dto.getInAccountName().trim().isEmpty()) {
                 String accName = dto.getInAccountName().trim();
-                Account inAcc = accountRepository.findByNameAndUserId(accName, user.getId())
+                Account inAcc = accountRepository.findByNameIgnoreCaseAndUserId(accName, user.getId())
                         .orElseGet(() -> {
                             Account newAcc = new Account();
                             newAcc.setName(accName);
@@ -389,7 +389,7 @@ public class TransactionService {
 
             if (dto.getOutAccountName() != null && !dto.getOutAccountName().trim().isEmpty()) {
                 String accName = dto.getOutAccountName().trim();
-                Account outAcc = accountRepository.findByNameAndUserId(accName, user.getId())
+                Account outAcc = accountRepository.findByNameIgnoreCaseAndUserId(accName, user.getId())
                         .orElseGet(() -> {
                             Account newAcc = new Account();
                             newAcc.setName(accName);

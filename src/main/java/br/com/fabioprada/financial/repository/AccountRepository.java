@@ -20,6 +20,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     Optional<Account> findByNameAndUserId(@NonNull String name, @NonNull Long userId);
 
+    Optional<Account> findByNameIgnoreCaseAndUserId(@NonNull String name, @NonNull Long userId);
+
     @Modifying
     @Transactional
     @Query(value = "UPDATE accounts a SET current_balance = initial_balance " +

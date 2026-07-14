@@ -63,7 +63,7 @@ public class UserService implements UserDetailsService {
             "Outros"
         );
         for (String name : defaultCategories) {
-            if (categoryRepository.findByNameAndUserId(name, user.getId()).isEmpty()) {
+            if (categoryRepository.findByNameIgnoreCaseAndUserId(name, user.getId()).isEmpty()) {
                 Category category = new Category();
                 category.setName(name);
                 category.setUser(user);
