@@ -25,6 +25,7 @@ public class MonthlyPlanning {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private Category category;
 
     private BigDecimal estimatedAmount;

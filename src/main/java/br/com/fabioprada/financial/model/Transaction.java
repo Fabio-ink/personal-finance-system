@@ -36,14 +36,17 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private Category category;
 
     @ManyToOne
     @JoinColumn(name = "out_account_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private Account outAccount;
 
     @ManyToOne
     @JoinColumn(name = "in_account_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private Account inAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
