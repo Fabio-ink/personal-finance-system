@@ -48,21 +48,21 @@ public class ExcelService {
             int transRowIdx = 1;
             for (Transaction transaction : transactions) {
                 Row row = transSheet.createRow(transRowIdx++);
-                row.createCell(0).setCellValue(transaction.getName());
-                row.createCell(1).setCellValue(transaction.getCreationDate().toString());
-                row.createCell(2).setCellValue(transaction.getAmount().doubleValue());
-                row.createCell(3).setCellValue(transaction.getTransactionType().name());
+                row.createCell(0).setCellValue(transaction.getName() != null ? transaction.getName() : "");
+                row.createCell(1).setCellValue(transaction.getCreationDate() != null ? transaction.getCreationDate().toString() : "");
+                row.createCell(2).setCellValue(transaction.getAmount() != null ? transaction.getAmount().doubleValue() : 0.0);
+                row.createCell(3).setCellValue(transaction.getTransactionType() != null ? transaction.getTransactionType().name() : "");
 
                 if (transaction.getCategory() != null) {
-                    row.createCell(4).setCellValue(transaction.getCategory().getName());
+                    row.createCell(4).setCellValue(transaction.getCategory().getName() != null ? transaction.getCategory().getName() : "");
                 }
 
                 if (transaction.getOutAccount() != null) {
-                    row.createCell(5).setCellValue(transaction.getOutAccount().getName());
+                    row.createCell(5).setCellValue(transaction.getOutAccount().getName() != null ? transaction.getOutAccount().getName() : "");
                 }
 
                 if (transaction.getInAccount() != null) {
-                    row.createCell(6).setCellValue(transaction.getInAccount().getName());
+                    row.createCell(6).setCellValue(transaction.getInAccount().getName() != null ? transaction.getInAccount().getName() : "");
                 }
             }
 
@@ -81,9 +81,9 @@ public class ExcelService {
                     row.createCell(0).setCellValue(plan.getMonth());
                     row.createCell(1).setCellValue(plan.getYear());
                     if (plan.getCategory() != null) {
-                        row.createCell(2).setCellValue(plan.getCategory().getName());
+                        row.createCell(2).setCellValue(plan.getCategory().getName() != null ? plan.getCategory().getName() : "");
                     }
-                    row.createCell(3).setCellValue(plan.getEstimatedAmount().doubleValue());
+                    row.createCell(3).setCellValue(plan.getEstimatedAmount() != null ? plan.getEstimatedAmount().doubleValue() : 0.0);
                 }
             }
 

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, PageTitle, Input, Button } from '../components/ui';
+import { useToast } from '../hooks/useToast';
+import { useTranslation } from 'react-i18next';
 
 const RegisterPage = () => {
   const [name, setName] = useState('');
@@ -9,14 +11,38 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { addToast } = useToast();
+  const { t, i18n } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await register(name, email, password);
+      addToast({
+        type: 'success',
+        title: t('common.success'),
+        message: i18n.language.startsWith('pt') ? 'Cadastro realizado com sucesso! Faça o login.' : 'Registration successful! Please login.'
+      });
       navigate('/login');
     } catch (error) {
       console.error('Failed to register', error);
+      const data = error.response?.data;
+      const isEmailInUse = 
+        (typeof data === 'string' && data.includes('Email already in use')) ||
+        (data && (data.message === 'Email already in use' || data.details === 'Email already in use')) ||
+        (error.message && error.message.includes('Email already in use'));
+
+      let messageToShow;
+      if (isEmailInUse) {
+        messageToShow = i18n.language.startsWith('pt') ? 'Este e-mail já está cadastrado.' : 'This email is already registered.';
+      } else {
+        messageToShow = i18n.language.startsWith('pt') ? 'Erro ao realizar o cadastro.' : 'Failed to register.';
+      }
+      addToast({
+        type: 'error',
+        title: t('common.error'),
+        message: messageToShow
+      });
     }
   };
 
