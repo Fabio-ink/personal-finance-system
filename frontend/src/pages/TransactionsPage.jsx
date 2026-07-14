@@ -11,12 +11,10 @@ import Modal from '../components/ui/Modal';
 import Select from '../components/ui/Select';
 import TransactionFilters from '../components/transactions/TransactionFilters';
 import TransactionTable from '../components/transactions/TransactionTable';
+import ImportModal from '../components/transactions/ImportModal';
 import { formatCurrency } from '../utils/dateUtils';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
-import { parseOfxText } from '../utils/ofxClientParser';
-import { saveLocalTransaction, getCategorizationRules } from '../services/db';
-import { syncOfflineTransactions } from '../services/syncService';
 
 function TransactionsPage() {
     const { t } = useTranslation();
@@ -28,9 +26,7 @@ function TransactionsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState(null);
     const [selectedTransactions, setSelectedTransactions] = useState(new Set());
-    const [isOfxModalOpen, setIsOfxModalOpen] = useState(false);
-    const [ofxFile, setOfxFile] = useState(null);
-    const [selectedOfxAccountId, setSelectedOfxAccountId] = useState('');
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const location = useLocation();
 
@@ -168,158 +164,7 @@ function TransactionsPage() {
         }
     };
 
-    const handleImport = async (e) => {
-        if (isLocalMode) {
-            addToast({ type: 'error', title: t('common.error'), message: 'A importação de Excel não está disponível no Modo Local.' });
-            e.target.value = '';
-            return;
-        }
-        const file = e.target.files[0];
-        if (!file) return;
 
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            await api.post('/transactions/import', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            addToast({ type: 'success', title: t('common.import'), message: t('transactions.importSuccess') });
-            handleApplyFilters();
-            fetchCategories(); // Refresh in case new categories were created
-            fetchAccounts(); // Refresh in case new accounts were created
-        } catch (error) {
-            console.error(error);
-            addToast({ type: 'error', title: t('common.error'), message: t('transactions.importError') });
-        }
-        e.target.value = '';
-    };
-
-    const handleImportOfx = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        setOfxFile(file);
-        setIsOfxModalOpen(true);
-        e.target.value = '';
-    };
-
-    const processOfxImport = async () => {
-        if (!ofxFile || !selectedOfxAccountId) return;
-
-        const account = accounts.find(a => String(a.id) === String(selectedOfxAccountId));
-        if (!account) {
-            addToast({ type: 'error', title: t('common.error'), message: 'Selected account not found.' });
-            return;
-        }
-
-        const customRules = await getCategorizationRules().catch(() => []);
-
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            try {
-                const text = event.target.result;
-                const parsedTransactions = parseOfxText(text);
-                if (parsedTransactions.length === 0) {
-                    addToast({ type: 'error', title: t('common.error'), message: 'No valid transactions found in OFX file.' });
-                    return;
-                }
-
-                const currentCategories = [...categories];
-                const newCategoriesToCreate = [];
-
-                const getOrCreateCategory = (catName) => {
-                    const existing = currentCategories.find(c => c.name.toLowerCase() === catName.toLowerCase());
-                    if (existing) return existing;
-
-                    const newCat = {
-                        id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                        name: catName
-                    };
-                    currentCategories.push(newCat);
-                    newCategoriesToCreate.push(newCat);
-                    return newCat;
-                };
-
-                const categorizeName = (name) => {
-                    const desc = name.toLowerCase();
-                    
-                    const matchedRule = customRules.find(rule => desc.includes(rule.keyword));
-                    if (matchedRule) {
-                        return getOrCreateCategory(matchedRule.categoryName);
-                    }
-
-                    let categoryName = "Others";
-                    
-                    const matches = (keywords) => keywords.some(kw => desc.includes(kw));
-
-                    const transportKeywords = ["uber", "99app", "cabify", "indrive", "táxi", "taxi", "metrô", "metro", "cptm", "sptrans", "bilhete", "passagem", "pedágio", "pedagio", "semparar", "veloe", "combustivel", "posto", "petrobras", "ipiranga", "shell", "ale"];
-                    const foodKeywords = ["ifood", "ubereats", "rappi", "restaurante", "bar", "padaria", "panificadora", "mercado", "supermercado", "hipermercado", "hortifruti", "açougue", "acougue", "bistrô", "bistro", "cafeteria", "starbucks", "mcdonalds", "bk", "burger", "pizza", "sushi", "cafe", "food"];
-                    const entKeywords = ["netflix", "spotify", "steam", "epic", "playstation", "xbox", "nintendo", "cinema", "ingresso", "show", "teatro", "jogos", "game", "twitch", "youtube", "disney", "hbo", "prime", "globoplay"];
-                    const housingKeywords = ["luz", "energia", "enel", "copel", "cemig", "light", "agua", "esgoto", "sabesp", "copasa", "sanepar", "internet", "net", "claro", "vivo", "tim", "telefonia", "aluguel", "condominio", "imobiliaria", "gás", "gas", "ultragaz"];
-                    const healthKeywords = ["farmacia", "drogasil", "droga", "pague", "ultrafarma", "medico", "dentista", "consulta", "hospital", "clinica", "laboratorio", "exame", "saude", "unimed", "amil", "sulamerica"];
-                    const eduKeywords = ["escola", "faculdade", "universidade", "curso", "udemy", "coursera", "livro", "livraria", "papelaria", "mensalidade", "colegio"];
-                    
-                    if (matches(transportKeywords)) {
-                        categoryName = "Transport";
-                    } else if (matches(foodKeywords)) {
-                        categoryName = "Food";
-                    } else if (matches(entKeywords)) {
-                        categoryName = "Entertainment";
-                    } else if (matches(housingKeywords)) {
-                        categoryName = "Housing";
-                    } else if (matches(healthKeywords)) {
-                        categoryName = "Health";
-                    } else if (matches(eduKeywords)) {
-                        categoryName = "Education";
-                    }
-                    
-                    return getOrCreateCategory(categoryName);
-                };
-
-                for (const t of parsedTransactions) {
-                    const tempId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                    const transWithAccount = { ...t };
-                    if (t.transactionType === 'EXPENSE') {
-                        transWithAccount.outAccount = account;
-                    } else {
-                        transWithAccount.inAccount = account;
-                    }
-                    transWithAccount.category = categorizeName(t.name);
-
-                    await saveLocalTransaction({
-                        ...transWithAccount,
-                        id: tempId,
-                        synced: false
-                    });
-                }
-
-                if (newCategoriesToCreate.length > 0) {
-                    const { getCachedCategories, cacheCategories } = await import('../services/db');
-                    const cached = await getCachedCategories();
-                    const updated = [...cached, ...newCategoriesToCreate];
-                    await cacheCategories(updated);
-                }
-
-                addToast({ type: 'success', title: t('common.import'), message: `${parsedTransactions.length} transactions imported locally!` });
-                setIsOfxModalOpen(false);
-                setOfxFile(null);
-                setSelectedOfxAccountId('');
-                handleApplyFilters();
-                fetchCategories();
-
-                syncOfflineTransactions().then(() => {
-                    handleApplyFilters();
-                    fetchCategories();
-                }).catch(() => {});
-            } catch (error) {
-                console.error(error);
-                addToast({ type: 'error', title: t('common.error'), message: 'Error processing OFX file.' });
-            }
-        };
-        reader.readAsText(ofxFile);
-    };
 
     const handleFilterChange = (field, value) => {
         handleChange(field, value);
@@ -345,28 +190,16 @@ function TransactionsPage() {
                         onClick={handleExport}>
                         {t('common.export')}
                     </Button>
-                    <label className="cursor-pointer">
-                        <input
-                            type="file"
-                            accept=".xlsx, .xls"
-                            className="hidden"
-                            onChange={handleImport}
-                        />
-                        <span className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100">
-                            {t('common.import')}
-                        </span>
-                    </label>
-                    <label className="cursor-pointer">
-                        <input
-                            type="file"
-                            accept=".ofx"
-                            className="hidden"
-                            onChange={handleImportOfx}
-                        />
-                        <span className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100">
-                            Import OFX
-                        </span>
-                    </label>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setIsImportModalOpen(true)}>
+                        {t('common.import')}
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setIsImportModalOpen(true)}>
+                        Import OFX
+                    </Button>
                     <Button
                         variant="success"
                         onClick={() => { setSelectedTransaction(null); setIsModalOpen(true); }}>
@@ -468,35 +301,16 @@ function TransactionsPage() {
                 />
             </Modal>
 
-            <Modal isOpen={isOfxModalOpen} onCancel={() => { setIsOfxModalOpen(false); setOfxFile(null); }}>
-                <div className="p-6 space-y-4">
-                    <h3 className="text-xl font-bold text-white">Importar Extrato OFX</h3>
-                    <p className="text-text-secondary text-sm">
-                        Selecione a conta correspondente a este extrato para vincular as transações.
-                    </p>
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-white">Conta Bancária</label>
-                        <Select
-                            value={selectedOfxAccountId}
-                            onChange={(e) => setSelectedOfxAccountId(e.target.value)}
-                            className="w-full"
-                        >
-                            <option value="">Selecione uma conta...</option>
-                            {accounts.map(acc => (
-                                <option key={acc.id} value={acc.id}>{acc.name}</option>
-                            ))}
-                        </Select>
-                    </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button variant="ghost" onClick={() => { setIsOfxModalOpen(false); setOfxFile(null); }}>
-                            Cancelar
-                        </Button>
-                        <Button variant="primary" onClick={processOfxImport} disabled={!selectedOfxAccountId}>
-                            Importar
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
+            <ImportModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                accounts={accounts}
+                categories={categories}
+                fetchCategories={fetchCategories}
+                fetchAccounts={fetchAccounts}
+                onSuccess={handleApplyFilters}
+                isLocalMode={isLocalMode}
+            />
         </div>
     );
 }
