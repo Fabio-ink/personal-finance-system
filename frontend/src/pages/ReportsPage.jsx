@@ -26,6 +26,28 @@ import {
 
 const COLORS = ['#3b82f6', '#d0e96a', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#6b7280'];
 
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-brand-card border border-brand-border/60 p-3 rounded-2xl shadow-xl">
+        {label && <p className="text-gray-300 font-bold mb-2 text-xs">{label}</p>}
+        <div className="space-y-1">
+          {payload.map((entry, index) => (
+            <div key={index} className="flex items-center gap-2 text-xxs">
+              <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color || entry.fill }} />
+              <span className="text-gray-400 capitalize">{entry.name}:</span>
+              <span className="text-white font-semibold font-mono ml-auto">
+                {formatCurrency(entry.value)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 const calculateLocalReport = (transactions, planning, categories, month, year) => {
   const currentMonthTx = transactions.filter(t => {
     const d = new Date(t.creationDate);
@@ -517,7 +539,7 @@ function ReportsPage() {
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
-                          <Tooltip formatter={(value) => formatCurrency(value)} />
+                          <Tooltip content={<CustomTooltip />} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -561,11 +583,11 @@ function ReportsPage() {
                       onClick={handleChartClick}
                       style={{ cursor: 'pointer' }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="name" stroke="#9ca3af" />
-                      <YAxis stroke="#9ca3af" />
-                      <Tooltip formatter={(value) => formatCurrency(value)} />
-                      <Legend />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#322e45" opacity={0.6} />
+                      <XAxis dataKey="name" stroke="#686480" tick={{ fill: '#9c99b0', fontSize: 12 }} />
+                      <YAxis stroke="#686480" tick={{ fill: '#9c99b0', fontSize: 12 }} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend formatter={(value) => <span className="text-text-secondary text-sm ml-1.5 font-semibold">{value}</span>} />
                       <Bar dataKey={t('common.income')} fill="#d0e96a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={handleChartClick} />
                       <Bar dataKey={t('common.expenses')} fill="#ef4444" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={handleChartClick} />
                     </BarChart>
