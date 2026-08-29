@@ -62,6 +62,15 @@ function UserMenu() {
             >
               <User size={16} /> {t('profile.title')}
             </button>
+            <button 
+              onClick={() => {
+                setIsOpen(false);
+                navigate('/settings');
+              }}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 text-gray-300 w-full text-left cursor-pointer transition-colors"
+            >
+              <Settings size={16} /> {t('common.settings')}
+            </button>
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 p-2 rounded-md hover:bg-red-500/10 text-brand-red w-full text-left cursor-pointer transition-colors hover:text-red-400"
