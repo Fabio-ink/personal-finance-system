@@ -2,18 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { PageTitle, Card, Input, Button } from '../components/ui';
 import api from '../services/api';
-import { User, Mail, Lock, Globe } from 'lucide-react';
+import { User, Mail, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const UserProfilePage = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, updateUserToken } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const currentLang = i18n.language || 'en';
 
   useEffect(() => {
     if (user) {
@@ -21,6 +19,7 @@ const UserProfilePage = () => {
       setEmail(user.email || user.sub || '');
     }
   }, [user]);
+
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -151,45 +150,6 @@ const UserProfilePage = () => {
               </Button>
             </div>
           </form>
-        </Card>
-
-        {/* Language Selection Card */}
-        <Card className="p-8 bg-brand-card border border-brand-border/30">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-            <Globe size={20} className="text-brand-primary" /> {t('profile.language')}
-          </h3>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => i18n.changeLanguage('en')}
-              className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                currentLang.startsWith('en') 
-                  ? 'bg-brand-primary/10 border-brand-primary text-white' 
-                  : 'bg-brand-dark/40 border-brand-border/20 text-gray-400 hover:border-brand-primary/50'
-              }`}
-            >
-              <span className="text-2xl mb-2">🇺🇸</span>
-              <span className="font-semibold">English</span>
-              {currentLang.startsWith('en') && (
-                <div className="w-1.5 h-1.5 rounded-full bg-brand-primary mt-2"></div>
-              )}
-            </button>
-
-            <button
-              onClick={() => i18n.changeLanguage('pt')}
-              className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                currentLang.startsWith('pt') 
-                  ? 'bg-brand-primary/10 border-brand-primary text-white' 
-                  : 'bg-brand-dark/40 border-brand-border/20 text-gray-400 hover:border-brand-primary/50'
-              }`}
-            >
-              <span className="text-2xl mb-2">🇧🇷</span>
-              <span className="font-semibold">Português (Brasil)</span>
-              {currentLang.startsWith('pt') && (
-                <div className="w-1.5 h-1.5 rounded-full bg-brand-primary mt-2"></div>
-              )}
-            </button>
-          </div>
         </Card>
       </div>
 
