@@ -243,5 +243,27 @@
     "warningLimit": "Atenção (Próximo ao Limite)",
     "investmentExceeded": "Meta Superada (Positivo)",
     "noData": "Sem dados suficientes para gerar relatórios neste período."
+  },
+  "settings": {
+    "title": "Configurações do Sistema",
+    "languageTitle": "Idioma do Sistema",
+    "languageDesc": "Escolha o idioma de exibição da interface do aplicativo.",
+    "rulesTitle": "Regras de Categorização Automática",
+    "rulesDesc": "Gerencie palavras-chave aprendidas ou cadastradas para associar transações importadas ou manuais às suas respectivas categorias.",
+    "addRule": "Adicionar Nova Regra",
+    "keyword": "Palavra-chave",
+    "keywordPlaceholder": "ex: Uber, iFood, Netflix",
+    "category": "Categoria Associada",
+    "selectCategory": "Selecione uma categoria",
+    "searchRules": "Pesquisar regra por palavra-chave ou categoria...",
+    "noRules": "Nenhuma regra de categorização cadastrada.",
+    "noRulesDesc": "As regras são criadas automaticamente ao salvar transações ou podem ser adicionadas manualmente aqui para automação de extratos OFX.",
+    "deleteRuleConfirm": "Tem certeza que deseja excluir esta regra de categorização?",
+    "clearAllRules": "Limpar Todas as Regras",
+    "clearAllConfirm": "Tem certeza que deseja apagar TODAS as regras de categorização?",
+    "ruleAdded": "Regra adicionada com sucesso!",
+    "ruleDeleted": "Regra excluída com sucesso!",
+    "allRulesCleared": "Todas as regras foram removidas."
   }
 }
+

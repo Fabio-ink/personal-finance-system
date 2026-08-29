@@ -243,5 +243,27 @@
     "warningLimit": "Warning (Near Limit)",
     "investmentExceeded": "Goal Surpassed (Positive)",
     "noData": "Not enough data to generate reports in this period."
+  },
+  "settings": {
+    "title": "System Settings",
+    "languageTitle": "System Language",
+    "languageDesc": "Choose the display language for the application interface.",
+    "rulesTitle": "Automatic Categorization Rules",
+    "rulesDesc": "Manage learned or registered keywords to link imported or manual transactions to their respective categories.",
+    "addRule": "Add New Rule",
+    "keyword": "Keyword",
+    "keywordPlaceholder": "e.g., Uber, iFood, Netflix",
+    "category": "Associated Category",
+    "selectCategory": "Select a category",
+    "searchRules": "Search rule by keyword or category...",
+    "noRules": "No categorization rules registered.",
+    "noRulesDesc": "Rules are created automatically when saving transactions or can be manually added here for OFX statement automation.",
+    "deleteRuleConfirm": "Are you sure you want to delete this categorization rule?",
+    "clearAllRules": "Clear All Rules",
+    "clearAllConfirm": "Are you sure you want to delete ALL categorization rules?",
+    "ruleAdded": "Rule added successfully!",
+    "ruleDeleted": "Rule deleted successfully!",
+    "allRulesCleared": "All rules have been cleared."
   }
 }
+
