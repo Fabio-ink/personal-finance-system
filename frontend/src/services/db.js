@@ -174,6 +174,29 @@ export async function getCategorizationRules() {
   });
 }
 
+export async function deleteCategorizationRule(keyword) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transactionObj = db.transaction(['rules'], 'readwrite');
+    const store = transactionObj.objectStore('rules');
+    const request = store.delete(keyword.toLowerCase().trim());
+    request.onsuccess = () => resolve();
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+export async function clearCategorizationRules() {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transactionObj = db.transaction(['rules'], 'readwrite');
+    const store = transactionObj.objectStore('rules');
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+
 export async function cachePlanning(planningEntries) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
