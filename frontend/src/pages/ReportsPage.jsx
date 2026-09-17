@@ -343,7 +343,7 @@ function ReportsPage() {
             };
           } else {
             localPlannings.push({
-              id: `local_plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              id: `local_plan_${Date.now()}_${crypto.randomUUID()}`,
               month,
               year,
               category: categoryObj,

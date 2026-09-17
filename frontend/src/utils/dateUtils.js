@@ -9,10 +9,17 @@ export const formatDate = (date, pattern) => {
     const defaultPattern = i18n.language.startsWith('pt') ? 'dd/MM/yyyy' : 'MM/dd/yyyy';
     const finalPattern = pattern || defaultPattern;
     
-    // If it's a string in YYYY-MM-DD format (typical from backend for local dates)
-    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date.split('T')[0])) {
-        const [year, month, day] = date.split('T')[0].split('-').map(Number);
-        return format(new Date(year, month - 1, day), finalPattern, { locale });
+    if (typeof date === 'string') {
+        const dateStr = date.split('T')[0];
+        if (dateStr.length === 10 && dateStr[4] === '-' && dateStr[7] === '-') {
+            const [yearStr, monthStr, dayStr] = dateStr.split('-');
+            const year = Number(yearStr);
+            const month = Number(monthStr);
+            const day = Number(dayStr);
+            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                return format(new Date(year, month - 1, day), finalPattern, { locale });
+            }
+        }
     }
 
     return format(new Date(date), finalPattern, { locale });

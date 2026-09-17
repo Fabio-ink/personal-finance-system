@@ -170,7 +170,7 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                         if (existing) return existing;
 
                         const newCat = {
-                            id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                            id: `local_${Date.now()}_${crypto.randomUUID()}`,
                             name: catName
                         };
                         currentCategories.push(newCat);
@@ -220,7 +220,7 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                         setUploadProgress(Math.round(((i + 1) / total) * 100));
                         setCurrentStepText(`Processando ${i + 1} de ${total} transações...`);
 
-                        const tempId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                        const tempId = `local_${Date.now()}_${crypto.randomUUID()}`;
                         const transWithAccount = { ...t };
                         if (t.transactionType === 'EXPENSE') {
                             transWithAccount.outAccount = account;
