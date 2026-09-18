@@ -3,6 +3,7 @@ import { UploadCloud, FileText, AlertTriangle, Loader2, X, AlertCircle } from 'l
 import { useTranslation } from 'react-i18next';
 import Button from '../ui/Button';
 import Select from '../ui/Select';
+import Modal from '../ui/Modal';
 import api from '../../services/api';
 import { parseOfxText } from '../../utils/ofxClientParser';
 import { saveLocalTransaction, getCategorizationRules, getCachedCategories, cacheCategories } from '../../services/db';
@@ -263,20 +264,10 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-lg bg-brand-card border border-brand-border/60 shadow-2xl rounded-2xl p-6 flex flex-col gap-5 scale-100 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-                
-                {/* Header */}
-                <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-white">Importar Arquivo</h3>
-                    {!uploading && (
-                        <button onClick={handleClose} className="text-text-secondary hover:text-white transition-colors cursor-pointer">
-                            <X className="w-6 h-6" />
-                        </button>
-                    )}
-                </div>
+        <Modal isOpen={isOpen} onCancel={handleClose}>
+            <div className="flex flex-col gap-5">
+                <h3 className="text-xl font-bold text-white">Importar Arquivo</h3>
 
-                {/* Observation box */}
                 <div className="bg-brand-primary/10 border border-brand-primary/20 rounded-xl p-4 flex gap-3 text-sm text-text-secondary">
                     <AlertTriangle className="text-brand-primary shrink-0 w-5 h-5" />
                     <span>
@@ -284,7 +275,6 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                     </span>
                 </div>
 
-                {/* File Drop/Selector Area */}
                 {!file && (
                     <div
                         onDragOver={handleDragOver}
@@ -310,7 +300,6 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                     </div>
                 )}
 
-                {/* Selected File Details */}
                 {file && (
                     <div className="bg-brand-dark/40 border border-brand-border/50 rounded-xl p-4 flex flex-col gap-3">
                         <div className="flex justify-between items-start">
@@ -333,7 +322,6 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                             )}
                         </div>
 
-                        {/* OFX specific bank account selector */}
                         {fileType === 'ofx' && !uploading && (
                             <div className="space-y-2 mt-2 pt-3 border-t border-brand-border/40">
                                 <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Conta Bancária de Destino</label>
@@ -350,7 +338,6 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                             </div>
                         )}
 
-                        {/* Progress Bar & Status (when uploading/processing) */}
                         {uploading && (
                             <div className="space-y-3 mt-2 pt-3 border-t border-brand-border/40">
                                 <div className="flex justify-between text-xs font-semibold text-text-secondary">
@@ -381,15 +368,7 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                     </div>
                 )}
 
-                {/* Footer Buttons */}
-                <div className="flex justify-end gap-3 mt-2">
-                    <Button 
-                        variant="ghost" 
-                        onClick={handleClose} 
-                        disabled={uploading}
-                    >
-                        Cancelar
-                    </Button>
+                <div className="flex justify-end mt-4">
                     <Button 
                         variant="success" 
                         onClick={startImport} 
@@ -410,9 +389,8 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                         )}
                     </Button>
                 </div>
-
             </div>
-        </div>
+        </Modal>
     );
 }
 

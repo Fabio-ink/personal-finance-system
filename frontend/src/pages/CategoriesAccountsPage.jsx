@@ -409,10 +409,7 @@ function CategoriesAccountsPage() {
             placeholder={t('categories.placeholderName')}
             required
           />
-          <div className="flex justify-end gap-3 mt-6">
-            <Button variant="outline" type="button" onClick={() => setIsCategoryModalOpen(false)}>
-              {t('common.cancel')}
-            </Button>
+          <div className="flex justify-end mt-6">
             <Button variant="primary" type="submit">
               {t('common.save')}
             </Button>
@@ -444,10 +441,7 @@ function CategoriesAccountsPage() {
             placeholder="0.00"
             required
           />
-          <div className="flex justify-end gap-3 mt-6">
-            <Button variant="outline" type="button" onClick={() => setIsAccountModalOpen(false)}>
-              {t('common.cancel')}
-            </Button>
+          <div className="flex justify-end mt-6">
             <Button variant="primary" type="submit">
               {t('common.save')}
             </Button>

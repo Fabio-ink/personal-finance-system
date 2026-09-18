@@ -585,7 +585,7 @@ function ReportsPage() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#322e45" opacity={0.6} />
                       <XAxis dataKey="name" stroke="#686480" tick={{ fill: '#9c99b0', fontSize: 12 }} />
                       <YAxis stroke="#686480" tick={{ fill: '#9c99b0', fontSize: 12 }} />
-                      <Tooltip content={<CustomTooltip />} />
+                      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.06)', radius: 8 }} />
                       <Legend formatter={(value) => <span className="text-text-secondary text-sm ml-1.5 font-semibold">{value}</span>} />
                       <Bar dataKey={t('common.income')} fill="#d0e96a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={handleChartClick} />
                       <Bar dataKey={t('common.expenses')} fill="#ef4444" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={handleChartClick} />

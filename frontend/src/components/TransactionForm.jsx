@@ -16,8 +16,6 @@ function TransactionForm({ transaction, onSave, onCancel, categories, accounts }
     const [formData, setFormData] = useState({
         name: '',
         amount: '',
-        // Initialize with local date string YYYY-MM-DD
-        // Initialize with local date string YYYY-MM-DD
         creationDate: getTodayLocalDateString(),
         transactionType: 'EXPENSE',
         categoryId: '',
@@ -34,8 +32,6 @@ function TransactionForm({ transaction, onSave, onCancel, categories, accounts }
                 name: transaction.name || '',
                 amount: transaction.amount || '',
                 creationDate: transaction.creationDate ? (() => {
-                    // Start of day in local time from the UTC string provided by backend or ensure YYYY-MM-DD
-                    // Assuming transaction.creationDate is YYYY-MM-DD string based on current usage.
                     return transaction.creationDate.split('T')[0];
                 })() : getTodayLocalDateString(),
                 transactionType: transaction.transactionType || 'EXPENSE',
@@ -193,10 +189,7 @@ function TransactionForm({ transaction, onSave, onCancel, categories, accounts }
                     </>
                 )}
 
-                <div className="flex justify-end gap-2 mt-4">
-                    <Button type="button" variant="outline" onClick={onCancel}>
-                      {t('common.cancel')}
-                    </Button>
+                <div className="flex justify-end mt-6">
                     <Button type="submit" variant="primary">
                       {t('common.save')}
                     </Button>
