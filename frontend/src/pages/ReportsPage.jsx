@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import Checkbox from '../components/ui/Checkbox';
+import PageSkeleton from '../components/ui/Skeleton';
 import {
   BarChart,
   Bar,
@@ -479,9 +480,7 @@ function ReportsPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-text-secondary">
-          {t('common.loading')}
-        </div>
+        <PageSkeleton />
       ) : error ? (
         <div className="flex items-center justify-center h-64 text-red-500">
           {error}

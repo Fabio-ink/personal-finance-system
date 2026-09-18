@@ -1,23 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, PieChart, List, BarChart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './src/contexts/AuthContext.jsx';
-
-import DashboardPage from './src/pages/DashboardPage.jsx';
-import CategoriesAccountsPage from './src/pages/CategoriesAccountsPage.jsx';
-import TransactionsPage from './src/pages/TransactionsPage.jsx';
-import ReportsPage from './src/pages/ReportsPage.jsx';
-import LoginPage from './src/pages/LoginPage.jsx';
-import RegisterPage from './src/pages/RegisterPage.jsx';
-import ForgotPasswordPage from './src/pages/ForgotPasswordPage.jsx';
-import ResetPasswordPage from './src/pages/ResetPasswordPage.jsx';
-import LogoutSuccessPage from './src/pages/LogoutSuccessPage.jsx';
 import ProtectedRoute from './src/components/ProtectedRoute.jsx';
 import UserMenu from './src/components/UserMenu.jsx';
-import UserProfilePage from './src/pages/UserProfilePage.jsx';
-import SettingsPage from './src/pages/SettingsPage.jsx';
+import PageSkeleton from './src/components/ui/Skeleton.jsx';
 import { startSyncLoop, stopSyncLoop } from './src/services/syncService.js';
+
+const DashboardPage = lazy(() => import('./src/pages/DashboardPage.jsx'));
+const CategoriesAccountsPage = lazy(() => import('./src/pages/CategoriesAccountsPage.jsx'));
+const TransactionsPage = lazy(() => import('./src/pages/TransactionsPage.jsx'));
+const ReportsPage = lazy(() => import('./src/pages/ReportsPage.jsx'));
+const LoginPage = lazy(() => import('./src/pages/LoginPage.jsx'));
+const RegisterPage = lazy(() => import('./src/pages/RegisterPage.jsx'));
+const ForgotPasswordPage = lazy(() => import('./src/pages/ForgotPasswordPage.jsx'));
+const ResetPasswordPage = lazy(() => import('./src/pages/ResetPasswordPage.jsx'));
+const LogoutSuccessPage = lazy(() => import('./src/pages/LogoutSuccessPage.jsx'));
+const UserProfilePage = lazy(() => import('./src/pages/UserProfilePage.jsx'));
+const SettingsPage = lazy(() => import('./src/pages/SettingsPage.jsx'));
 
 const AppLayout = () => {
   const { t } = useTranslation();
@@ -56,16 +57,16 @@ const AppLayout = () => {
       <div className="flex-1 flex overflow-hidden relative">
         <nav className="w-72 bg-linear-to-b from-brand-gradient-start to-brand-gradient-end border-r border-brand-border/30 p-6 flex flex-col backdrop-blur-xl shrink-0">
           <div className="flex flex-col gap-2 pt-4">
-            <NavLink to="/" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <NavLink to="/" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 interactive-hover-lift ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
               <LayoutDashboard size={22} /> {t('common.dashboard')}
             </NavLink>
-            <NavLink to="/transactions" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <NavLink to="/transactions" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 interactive-hover-lift ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
               <List size={22} /> {t('common.transactions')}
             </NavLink>
-            <NavLink to="/categories" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <NavLink to="/categories" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 interactive-hover-lift ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
               <PieChart size={22} /> {t('common.categoriesAccounts')}
             </NavLink>
-            <NavLink to="/reports" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
+            <NavLink to="/reports" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 interactive-hover-lift ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
               <BarChart size={22} /> {t('reports.title')}
             </NavLink>
           </div>
@@ -88,8 +89,10 @@ const AppLayout = () => {
             <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-brand-info/5 rounded-full blur-[150px]"></div>
           </div>
           
-          <div className="relative z-10">
-            <Outlet />
+          <div className="relative z-10 animate-fade-in">
+            <Suspense fallback={<PageSkeleton />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>
@@ -99,25 +102,27 @@ const AppLayout = () => {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/logout-success" element={<LogoutSuccessPage />} />
+    <Suspense fallback={<PageSkeleton />}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/logout-success" element={<LogoutSuccessPage />} />
 
-      <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/accounts" element={<CategoriesAccountsPage />} />
-          <Route path="/categories" element={<CategoriesAccountsPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/profile" element={<UserProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/accounts" element={<CategoriesAccountsPage />} />
+            <Route path="/categories" element={<CategoriesAccountsPage />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/profile" element={<UserProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
 

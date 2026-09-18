@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Card, PageTitle, Input, Button } from '../components/ui';
+import { PageTitle, Input, Button } from '../components/ui';
 import { useToast } from '../hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
@@ -9,6 +9,7 @@ const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
   const { addToast } = useToast();
@@ -16,6 +17,7 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       await register(name, email, password);
       addToast({
@@ -43,15 +45,17 @@ const RegisterPage = () => {
         title: t('common.error'),
         message: messageToShow
       });
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center">
-      <div className="absolute inset-0 bg-brand-dark opacity-80"></div> {/* Dark overlay */}
-      
-      <div className="relative z-10 w-full max-w-md p-8 space-y-6">
-        <PageTitle className="text-center text-4xl text-white">Register</PageTitle>
+    <div className="min-h-screen flex justify-center items-center relative overflow-hidden bg-brand-dark">
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-brand-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-brand-info/10 rounded-full blur-[150px] pointer-events-none"></div>
+
+      <div className="relative z-10 w-full max-w-md p-8 space-y-6 bg-brand-card/70 backdrop-blur-xl border border-brand-border/40 rounded-3xl shadow-2xl animate-scale-in">
+        <PageTitle className="text-center text-4xl text-white font-bold tracking-tight">Register</PageTitle>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             type="text"
@@ -77,11 +81,11 @@ const RegisterPage = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <Button variant="primary" type="submit" className="w-full py-3!">
-            Register
+          <Button variant="primary" type="submit" loading={loading} className="w-full py-3!">
+            {loading ? 'Creating Account...' : 'Register'}
           </Button>
         </form>
-        <p className="text-center text-gray-300">
+        <p className="text-center text-gray-300 text-sm">
           Already have an account?{' '}
           <Link to="/login" className="font-semibold text-brand-primary hover:underline">
             Login

@@ -11,6 +11,7 @@ import Input from '../components/ui/Input';
 import Checkbox from '../components/ui/Checkbox';
 import Modal from '../components/ui/Modal';
 import { formatCurrency } from '../utils/dateUtils';
+import { SkeletonText } from '../components/ui/Skeleton';
 import { 
   PieChart, 
   Plus, 
@@ -227,8 +228,14 @@ function CategoriesAccountsPage() {
             </Button>
           </div>
 
+import { SkeletonText } from '../components/ui/Skeleton';
+
           {categoriesLoading ? (
-            <div className="flex justify-center py-12"><Spinner /></div>
+            <div className="space-y-4 py-6">
+              <SkeletonText className="h-10 w-full rounded-xl" />
+              <SkeletonText className="h-10 w-full rounded-xl" />
+              <SkeletonText className="h-10 w-full rounded-xl" />
+            </div>
           ) : categoriesError ? (
             <ErrorMessage message={categoriesError} />
           ) : (
@@ -308,7 +315,11 @@ function CategoriesAccountsPage() {
           </p>
 
           {accountsLoading ? (
-            <div className="flex justify-center py-12"><Spinner /></div>
+            <div className="space-y-4 py-6">
+              <SkeletonText className="h-12 w-full rounded-xl" />
+              <SkeletonText className="h-12 w-full rounded-xl" />
+              <SkeletonText className="h-12 w-full rounded-xl" />
+            </div>
           ) : accountsError ? (
             <ErrorMessage message={accountsError} />
           ) : (

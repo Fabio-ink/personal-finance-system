@@ -6,6 +6,7 @@ import TransactionChart from '../components/TransactionChart';
 import Card from '../components/ui/Card';
 import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
+import PageSkeleton from '../components/ui/Skeleton';
 import TransactionForm from '../components/TransactionForm';
 import TransactionList from '../components/TransactionList';
 import Modal from '../components/ui/Modal';
@@ -241,7 +242,7 @@ function DashboardPage() {
 
 
   if (loading) {
-    return <Spinner />;
+    return <PageSkeleton />;
   }
 
   if (error) {

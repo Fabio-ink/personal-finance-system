@@ -7,6 +7,8 @@ import ErrorMessage from '../ErrorMessage';
 import { formatCurrency, formatDate } from '../../utils/dateUtils';
 import { useTranslation } from 'react-i18next';
 
+import { SkeletonTable } from '../ui/Skeleton';
+
 const TransactionTable = ({ 
     transactions, 
     selectedTransactions, 
@@ -17,7 +19,7 @@ const TransactionTable = ({
     error 
 }) => {
     const { t } = useTranslation();
-    if (loading) return <Spinner />;
+    if (loading) return <SkeletonTable rows={6} cols={7} />;
     if (error) return <ErrorMessage message={error} />;
 
     const isAllSelected = transactions.length > 0 && selectedTransactions.size === transactions.length;

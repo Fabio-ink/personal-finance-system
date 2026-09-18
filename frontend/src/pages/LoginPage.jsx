@@ -10,6 +10,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showLocalWarning, setShowLocalWarning] = useState(false);
   const { login, enterLocalMode } = useAuth();
   const navigate = useNavigate();
@@ -24,83 +25,90 @@ const LoginPage = () => {
       }
       setStep(2);
     } else {
+      setLoading(true);
       try {
         await login(email, password);
         navigate('/');
-      } catch (error) {
-        console.error('Failed to login', error);
+      } catch (err) {
+        console.error('Failed to login', err);
         setError('Incorrect email or password. Try again.');
+        setLoading(false);
       }
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center">
-      <div className="absolute inset-0 bg-brand-dark opacity-80"></div>
+    <div className="min-h-screen flex justify-center items-center relative overflow-hidden bg-brand-dark">
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-brand-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-brand-info/10 rounded-full blur-[150px] pointer-events-none"></div>
 
-      <div className="relative z-10 w-full max-w-md p-8 space-y-6">
-        <PageTitle className="text-center text-4xl text-white">Login</PageTitle>
+      <div className="relative z-10 w-full max-w-md p-8 space-y-6 bg-brand-card/70 backdrop-blur-xl border border-brand-border/40 rounded-3xl shadow-2xl animate-scale-in">
+        <PageTitle className="text-center text-4xl text-white font-bold tracking-tight">Login</PageTitle>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-md text-sm text-center">
+          <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm text-center animate-fade-in font-medium">
             {error}
           </div>
         )}
 
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          <div className={step === 1 ? "space-y-6" : "hidden"}>
-            <Input
-              type="email"
-              name="email"
-              placeholder="Email"
-              label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="username"
-              autoFocus={step === 1}
-            />
+          {step === 1 && (
+            <div className="space-y-6 animate-fade-in">
+              <Input
+                type="email"
+                name="email"
+                placeholder="Email"
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
+                autoFocus
+              />
 
-            <Button variant="primary" type="submit" className="w-full py-3!">
-              Next
-            </Button>
-          </div>
+              <Button variant="primary" type="submit" className="w-full py-3!">
+                Next
+              </Button>
+            </div>
+          )}
 
-          <div className={step === 2 ? "space-y-6" : "hidden"}>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => { setStep(1); setError(''); setPassword(''); }}
-                className="text-gray-400 hover:text-white transition-colors"
-                title="Back"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              <div className="text-gray-300 text-sm truncate flex-1 font-medium">
-                {email}
+          {step === 2 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex items-center gap-2 pb-1">
+                <button
+                  type="button"
+                  onClick={() => { setStep(1); setError(''); setPassword(''); }}
+                  className="p-1.5 text-gray-400 hover:text-white hover:bg-brand-border/30 rounded-lg transition-colors cursor-pointer"
+                  title="Back"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+                <div className="text-gray-300 text-sm truncate flex-1 font-medium bg-brand-dark/40 px-3 py-1.5 rounded-lg border border-brand-border/20">
+                  {email}
+                </div>
               </div>
+
+              <Input
+                type="password"
+                name="password"
+                placeholder="Password"
+                label="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                autoFocus
+              />
+
+              <div className="flex justify-end">
+                <Link to="/forgot-password" className="text-sm text-brand-primary hover:underline font-medium">
+                  Forgot my password
+                </Link>
+              </div>
+
+              <Button variant="primary" type="submit" loading={loading} className="w-full py-3!">
+                {loading ? 'Logging in...' : 'Login'}
+              </Button>
             </div>
-
-            <Input
-              type="password"
-              name="password"
-              placeholder="Password"
-              label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              autoFocus={step === 2}
-            />
-
-            <div className="flex justify-end">
-              <Link to="/forgot-password" className="text-sm text-brand-primary hover:underline">
-                Forgot my password
-              </Link>
-            </div>
-
-            <Button variant="primary" type="submit" className="w-full py-3!">
-              Login
-            </Button>
-          </div>
+          )}
         </form>
 
         <div className="text-center pt-2">
@@ -113,7 +121,7 @@ const LoginPage = () => {
           </button>
         </div>
 
-        <p className="text-center text-gray-300">
+        <p className="text-center text-gray-300 text-sm">
           Don't have an account?{' '}
           <Link to="/register" className="font-semibold text-brand-primary hover:underline">
             Register

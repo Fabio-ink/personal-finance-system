@@ -1,7 +1,16 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 
-function Button({ variant = 'primary', size = 'md', children, className = '', ...props }) {
-  const baseStyle = "font-semibold transition-all disabled:opacity-50 rounded-xl cursor-pointer flex items-center justify-center gap-2 active:scale-95";
+function Button({
+  variant = 'primary',
+  size = 'md',
+  children,
+  className = '',
+  loading = false,
+  disabled = false,
+  ...props
+}) {
+  const baseStyle = 'font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl cursor-pointer flex items-center justify-center gap-2 interactive-hover-lift interactive-tap-scale';
 
   const sizeStyles = {
     sm: 'py-1.5 px-3 text-sm',
@@ -22,7 +31,8 @@ function Button({ variant = 'primary', size = 'md', children, className = '', ..
   const buttonClassName = `${baseStyle} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`;
 
   return (
-    <button className={buttonClassName} {...props}>
+    <button className={buttonClassName} disabled={disabled || loading} {...props}>
+      {loading && <Loader2 className="w-4 h-4 animate-spin-smooth shrink-0" />}
       {children}
     </button>
   );
