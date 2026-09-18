@@ -1,6 +1,6 @@
-import React, { useEffect, lazy, Suspense } from 'react';
-import { Routes, Route, NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, PieChart, List, BarChart } from 'lucide-react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
+import { Routes, Route, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { LayoutDashboard, PieChart, List, BarChart, Menu, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './src/contexts/AuthContext.jsx';
 import ProtectedRoute from './src/components/ProtectedRoute.jsx';
@@ -23,11 +23,17 @@ const SettingsPage = lazy(() => import('./src/pages/SettingsPage.jsx'));
 const AppLayout = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     startSyncLoop();
     return () => stopSyncLoop();
   }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const getDisplayName = (name) => {
     if (!name) return 'User';
@@ -43,20 +49,38 @@ const AppLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-linear-to-br from-brand-gradient-start to-brand-gradient-end text-text-primary font-sans">
-      <header className="h-20 shrink-0 bg-brand-dark border-b border-brand-border/30 flex items-center justify-between px-8 z-50 relative shadow-md">
-        <div className="w-10"></div> 
+      <header className="h-20 shrink-0 bg-brand-dark border-b border-brand-border/30 flex items-center justify-between px-4 md:px-8 z-50 relative shadow-md">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-text-secondary hover:text-white rounded-xl hover:bg-brand-card-hover transition-colors"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div> 
+
         <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-3">
           <div className="flex flex-col items-center">
             <div className="text-2xl font-bold tracking-widest text-brand-success">SYNC</div>
             <div className="text-xs tracking-[0.3em] text-text-secondary uppercase">wallet</div>
           </div>
         </div>
+        
         <UserMenu />
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
-        <nav className="w-72 bg-linear-to-b from-brand-gradient-start to-brand-gradient-end border-r border-brand-border/30 p-6 flex flex-col backdrop-blur-xl shrink-0">
-          <div className="flex flex-col gap-2 pt-4">
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        <nav className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-linear-to-b from-brand-gradient-start to-brand-gradient-end border-r border-brand-border/30 p-6 flex flex-col backdrop-blur-xl shrink-0 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+          <div className="flex flex-col gap-2 pt-16 md:pt-4">
             <NavLink to="/" className={({ isActive }) => `flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 interactive-hover-lift ${isActive ? 'bg-brand-success text-brand-dark shadow-lg shadow-brand-success/20 font-semibold' : 'text-text-secondary hover:bg-brand-card-hover hover:text-white'}`}>
               <LayoutDashboard size={22} /> {t('common.dashboard')}
             </NavLink>
@@ -83,7 +107,7 @@ const AppLayout = () => {
           </div>
         </nav>
         
-        <main className="flex-1 p-8 overflow-auto z-10 scrollbar-thin scrollbar-thumb-brand-border scrollbar-track-transparent">
+        <main className="flex-1 p-4 md:p-8 overflow-auto z-10 scrollbar-thin scrollbar-thumb-brand-border scrollbar-track-transparent">
           <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
             <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-brand-primary/5 rounded-full blur-[150px]"></div>
             <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-brand-info/5 rounded-full blur-[150px]"></div>

@@ -228,8 +228,6 @@ function CategoriesAccountsPage() {
             </Button>
           </div>
 
-import { SkeletonText } from '../components/ui/Skeleton';
-
           {categoriesLoading ? (
             <div className="space-y-4 py-6">
               <SkeletonText className="h-10 w-full rounded-xl" />

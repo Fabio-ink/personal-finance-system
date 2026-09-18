@@ -3,12 +3,16 @@
 
 @theme {
   --color-brand-dark: #1a1823;
+  --color-brand-surface: #14121c;
   --color-brand-card: #23202f;
   --color-brand-card-hover: #2f2b3e;
   --color-brand-border: #322e45;
 
   --color-brand-primary: #8564f6;
   --color-brand-primary-hover: #a282f1;
+
+  --color-brand-secondary: #2f2b3e;
+  --color-brand-secondary-hover: #3d3752;
 
   --color-brand-success: #d0e96a;
   --color-brand-success-hover: #c4de5b;
@@ -38,7 +42,6 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;

@@ -39,7 +39,8 @@ application-dev.properties
 # Agent Files
 GEMINI.md
 .agents/
-migration_v2_english_enforcement.sql
+skills-lock.json
+
 
 # Logs
 backend.log
