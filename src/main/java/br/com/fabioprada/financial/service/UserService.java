@@ -106,6 +106,10 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    public java.util.List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
+
     public java.util.Optional<User> getUserByPasswordResetToken(String token) {
         return passwordResetTokenRepository.findByToken(token)
                 .filter(t -> !t.isExpired())

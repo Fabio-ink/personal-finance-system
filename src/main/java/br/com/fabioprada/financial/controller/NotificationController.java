@@ -1,7 +1,7 @@
 package br.com.fabioprada.financial.controller;
 
 import br.com.fabioprada.financial.model.User;
-import br.com.fabioprada.financial.repository.UserRepository;
+import br.com.fabioprada.financial.service.UserService;
 import br.com.fabioprada.financial.service.EmailService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/api/notifications")
 public class NotificationController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final EmailService emailService;
 
     @Value("${app.frontend.url}")
@@ -25,8 +25,8 @@ public class NotificationController {
     @Value("${app.cron.token}")
     private String cronToken;
 
-    public NotificationController(UserRepository userRepository, EmailService emailService) {
-        this.userRepository = userRepository;
+    public NotificationController(UserService userService, EmailService emailService) {
+        this.userService = userService;
         this.emailService = emailService;
     }
 
@@ -46,7 +46,7 @@ public class NotificationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token.");
         }
 
-        List<User> users = userRepository.findAll();
+        List<User> users = userService.findAllUsers();
         for (User user : users) {
             if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
                 String htmlContent = buildHtmlContent(user.getName());
