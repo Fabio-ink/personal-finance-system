@@ -7,6 +7,10 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "lint": "eslint .",
+    "lint:biome": "biome check src",
+    "knip": "knip",
+    "stryker": "stryker run",
+    "test:e2e": "playwright test",
     "preview": "vite preview"
   },
   "dependencies": {

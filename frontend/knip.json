@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/main.jsx!", "src/pages/**/*.jsx!"],
+  "project": ["src/**/*.{js,jsx}"],
+  "ignoreDependencies": ["@tailwindcss/vite"]
+}
