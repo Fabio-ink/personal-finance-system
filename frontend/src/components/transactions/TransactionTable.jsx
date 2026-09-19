@@ -1,12 +1,10 @@
 import React from 'react';
-import Card from '../ui/Card';
 import Checkbox from '../ui/Checkbox';
-import Button from '../ui/Button';
 import Spinner from '../Spinner';
 import ErrorMessage from '../ErrorMessage';
 import { formatCurrency, formatDate } from '../../utils/dateUtils';
 import { useTranslation } from 'react-i18next';
-
+import { SquarePen } from 'lucide-react';
 import { SkeletonTable } from '../ui/Skeleton';
 
 const TransactionTable = ({ 
@@ -24,64 +22,94 @@ const TransactionTable = ({
 
     const isAllSelected = transactions.length > 0 && selectedTransactions.size === transactions.length;
 
+    const formatValueDisplay = (transaction) => {
+        const isExpense = transaction.transactionType === 'EXPENSE';
+        const isIncome = transaction.transactionType === 'INCOME';
+        const formatted = formatCurrency(transaction.amount);
+
+        if (isExpense) {
+            return <span className="text-brand-danger font-semibold font-mono tracking-tight">- {formatted}</span>;
+        }
+        if (isIncome) {
+            return <span className="text-brand-success font-semibold font-mono tracking-tight">+ {formatted}</span>;
+        }
+        return <span className="text-brand-info font-semibold font-mono tracking-tight">{formatted}</span>;
+    };
+
     return (
-        <Card className="overflow-hidden">
+        <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 rounded-3xl overflow-hidden shadow-lg">
             {transactions.length > 0 ? (
                 <div className="overflow-x-auto">
-                    <table className="min-w-full leading-normal">
+                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr>
-                                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                    <Checkbox id="selectAllTransactions" checked={isAllSelected} onChange={onSelectAll} />
+                            <tr className="bg-[#4d338c] text-white text-xs font-semibold uppercase tracking-wider">
+                                <th className="py-4 px-5 w-12 text-center">
+                                    <div className="flex items-center justify-center">
+                                        <Checkbox id="selectAllTransactions" checked={isAllSelected} onChange={onSelectAll} />
+                                    </div>
                                 </th>
-                                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('transactions.table.name')}</th>
-                                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('transactions.table.value')}</th>
-                                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('transactions.table.category')}</th>
-                                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('transactions.table.account')}</th>
-                                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('transactions.table.date')}</th>
-                                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700"></th>
+                                <th className="py-4 px-5">{t('transactions.table.name')}</th>
+                                <th className="py-4 px-5">{t('transactions.table.value')}</th>
+                                <th className="py-4 px-5">{t('transactions.table.category')}</th>
+                                <th className="py-4 px-5">{t('transactions.table.account')}</th>
+                                <th className="py-4 px-5">{t('transactions.table.date')}</th>
+                                <th className="py-4 px-5 text-right w-16"></th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white dark:bg-gray-800">
-                            {transactions.map(transaction => (
-                                <tr key={transaction.id} className={`dark:bg-gray-800 ${selectedTransactions.has(transaction.id) ? 'bg-blue-100 dark:bg-blue-900' : ''}`}>
-                                    <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
-                                        <Checkbox id={`transaction-${transaction.id}`} checked={selectedTransactions.has(transaction.id)} onChange={() => onSelect(transaction.id)} />
-                                    </td>
-                                    <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
-                                        <p className="text-gray-900 dark:text-gray-200 whitespace-no-wrap">{transaction.name}</p>
-                                    </td>
-                                    <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
-                                        <p className={`whitespace-no-wrap ${transaction.transactionType === 'EXPENSE' ? 'text-red-600' : 'text-brand-success'}`}>
-                                            {formatCurrency(transaction.amount)}
-                                        </p>
-                                    </td>
-                                    <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
-                                         <p className="text-gray-900 dark:text-gray-200 whitespace-no-wrap">{transaction.category?.name ? t(`categories.${transaction.category.name.toLowerCase()}`, transaction.category.name) : 'N/A'}</p>
-                                    </td>
-                                    <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
-                                        <p className="text-gray-900 dark:text-gray-200 whitespace-no-wrap">{transaction.outAccount?.name || transaction.inAccount?.name || 'N/A'}</p>
-                                    </td>
-                                    <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm">
-                                        <p className="text-gray-900 dark:text-gray-200 whitespace-no-wrap">{formatDate(transaction.creationDate)}</p>
-                                    </td>
-                                    <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 text-sm text-right">
-                                        <Button 
-                                            variant="warning"
-                                            size="sm"
-                                            onClick={() => onEdit(transaction)}>{t('common.edit')}</Button>
-                                    </td>
-                                </tr>
-                            ))}
+                        <tbody className="divide-y divide-brand-border/10 text-white">
+                            {transactions.map(transaction => {
+                                const isSelected = selectedTransactions.has(transaction.id);
+                                return (
+                                    <tr 
+                                        key={transaction.id} 
+                                        className={`transition-colors ${isSelected ? 'bg-brand-primary/15' : 'hover:bg-brand-card-hover/20'}`}
+                                    >
+                                        <td className="py-4 px-5 text-center">
+                                            <div className="flex items-center justify-center">
+                                                <Checkbox 
+                                                    id={`transaction-${transaction.id}`} 
+                                                    checked={isSelected} 
+                                                    onChange={() => onSelect(transaction.id)} 
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-5 text-sm font-medium text-white">
+                                            {transaction.name}
+                                        </td>
+                                        <td className="py-4 px-5 text-sm">
+                                            {formatValueDisplay(transaction)}
+                                        </td>
+                                        <td className="py-4 px-5 text-sm text-text-secondary">
+                                            {transaction.category?.name ? t(`categories.${transaction.category.name.toLowerCase()}`, transaction.category.name) : '-'}
+                                        </td>
+                                        <td className="py-4 px-5 text-sm text-text-secondary">
+                                            {transaction.outAccount?.name || transaction.inAccount?.name || '-'}
+                                        </td>
+                                        <td className="py-4 px-5 text-sm text-text-secondary">
+                                            {formatDate(transaction.creationDate)}
+                                        </td>
+                                        <td className="py-4 px-5 text-right">
+                                            <button 
+                                                type="button"
+                                                onClick={() => onEdit(transaction)}
+                                                className="p-2 rounded-xl text-text-muted hover:text-white hover:bg-brand-card-hover border border-transparent hover:border-brand-border/40 transition-all cursor-pointer inline-flex items-center justify-center"
+                                                title={t('common.edit')}
+                                            >
+                                                <SquarePen className="w-4 h-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
             ) : (
-                <div className="text-center p-6">
-                    <p className="text-gray-500 dark:text-gray-400">{t('transactions.table.noTransactions')}</p>
+                <div className="text-center py-12 px-4">
+                    <p className="text-text-secondary text-sm">{t('transactions.table.noTransactions')}</p>
                 </div>
             )}
-        </Card>
+        </div>
     );
 };
 

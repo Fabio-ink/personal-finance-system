@@ -10,7 +10,7 @@ import { saveLocalTransaction, getCategorizationRules, getCachedCategories, cach
 import { syncOfflineTransactions } from '../../services/syncService';
 import { useToast } from '../../hooks/useToast';
 
-function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, fetchAccounts, onSuccess, isLocalMode }) {
+function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, fetchAccounts, onSuccess, isLocalMode, defaultFileType = '' }) {
     const { t } = useTranslation();
     const { addToast } = useToast();
     const fileInputRef = useRef(null);
@@ -26,6 +26,8 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
     const [currentStepText, setCurrentStepText] = useState('');
     const [uploadedBytes, setUploadedBytes] = useState(0);
     const [totalBytes, setTotalBytes] = useState(0);
+
+    const acceptTypes = defaultFileType === 'ofx' ? '.ofx' : defaultFileType === 'excel' ? '.xlsx, .xls' : '.xlsx, .xls, .ofx';
 
     if (!isOpen) return null;
 
@@ -290,7 +292,7 @@ function ImportModal({ isOpen, onClose, accounts, categories, fetchCategories, f
                         <input
                             type="file"
                             ref={fileInputRef}
-                            accept=".xlsx, .xls, .ofx"
+                            accept={acceptTypes}
                             className="hidden"
                             onChange={(e) => handleFileSelect(e.target.files[0])}
                         />
