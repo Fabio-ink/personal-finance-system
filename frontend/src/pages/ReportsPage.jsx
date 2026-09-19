@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import PageTitle from '../components/ui/PageTitle';
@@ -11,6 +12,7 @@ import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import Checkbox from '../components/ui/Checkbox';
 import PageSkeleton from '../components/ui/Skeleton';
+import { ExternalLink } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -57,16 +59,23 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
 
   let totalIncome = 0;
   let totalExpense = 0;
-  const categoryExpenses = {};
+  const categoryExpensesOnly = {};
+  const categorySpentTotal = {};
 
   currentMonthTx.forEach(t => {
     const amt = parseFloat(t.amount) || 0;
+    const catName = t.category?.name || t.categoryName || 'Outros';
     if (t.transactionType === 'INCOME') {
       totalIncome += amt;
-    } else if (t.transactionType === 'EXPENSE' || (t.transactionType === 'TRANSFER' && (t.category || t.categoryId || t.categoryName))) {
+    } else if (t.transactionType === 'EXPENSE') {
       totalExpense += amt;
-      const catName = t.category?.name || t.categoryName || 'Outros';
-      categoryExpenses[catName] = (categoryExpenses[catName] || 0) + amt;
+      categoryExpensesOnly[catName] = (categoryExpensesOnly[catName] || 0) + amt;
+    }
+
+    if (t.category || t.categoryId || t.categoryName) {
+      if (t.transactionType === 'EXPENSE' || t.transactionType === 'TRANSFER') {
+        categorySpentTotal[catName] = (categorySpentTotal[catName] || 0) + amt;
+      }
     }
   });
 
@@ -81,7 +90,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
   });
 
   const allCategoryNames = new Set([
-    ...Object.keys(categoryExpenses),
+    ...Object.keys(categorySpentTotal),
     ...mappedPlanning
       .filter(p => p.month === month && p.year === year && p.category?.name)
       .map(p => p.category.name)
@@ -128,7 +137,8 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
 
     return {
       categoryName: catName,
-      spentAmount: categoryExpenses[catName] || 0,
+      spentAmount: categorySpentTotal[catName] || 0,
+      expenseAmount: categoryExpensesOnly[catName] || 0,
       plannedAmount: matchedPlan ? parseFloat(matchedPlan.estimatedAmount) || 0 : 0,
       averageSpentPastMonths: avg
     };
@@ -154,7 +164,7 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
       const amt = parseFloat(t.amount) || 0;
       if (t.transactionType === 'INCOME') {
         inc += amt;
-      } else if (t.transactionType === 'EXPENSE' || (t.transactionType === 'TRANSFER' && (t.category || t.categoryId || t.categoryName))) {
+      } else if (t.transactionType === 'EXPENSE') {
         exp += amt;
       }
     });
@@ -178,11 +188,56 @@ const calculateLocalReport = (transactions, planning, categories, month, year) =
 function ReportsPage() {
   const { t, i18n } = useTranslation();
   const { isLocalMode } = useAuth();
+  const navigate = useNavigate();
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [categoriesList, setCategoriesList] = useState([]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        if (isLocalMode) {
+          const { getCachedCategories } = await import('../services/db');
+          const cats = await getCachedCategories().catch(() => []);
+          setCategoriesList(cats);
+        } else {
+          const res = await api.get('/categories');
+          setCategoriesList(res.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to load categories for reports navigation", err);
+      }
+    };
+    loadCategories();
+  }, [isLocalMode]);
+
+  const handleCategoryClick = useCallback((categoryName) => {
+    if (!categoryName) return;
+
+    const matchedCat = categoriesList.find(c => 
+      c.name?.toLowerCase() === categoryName.toLowerCase() ||
+      String(c.id) === String(categoryName) ||
+      t(`categories.${c.name?.toLowerCase()}`, c.name).toLowerCase() === categoryName.toLowerCase()
+    );
+
+    const catId = matchedCat ? matchedCat.id : '';
+
+    const padMonth = String(month).padStart(2, '0');
+    const lastDay = new Date(year, month, 0).getDate();
+    const startDate = `${year}-${padMonth}-01`;
+    const endDate = `${year}-${padMonth}-${String(lastDay).padStart(2, '0')}`;
+
+    navigate(`/transactions?categoryId=${catId}&startDate=${startDate}&endDate=${endDate}`, {
+      state: {
+        categoryId: catId,
+        startDate,
+        endDate
+      }
+    });
+  }, [categoriesList, month, year, navigate, t]);
 
   const fetchReport = async () => {
     try {
@@ -396,10 +451,10 @@ function ReportsPage() {
 
   const pieData = data?.categoryReports
     ? data.categoryReports
-        .filter(item => item.spentAmount > 0)
+        .filter(item => (item.expenseAmount !== undefined ? parseFloat(item.expenseAmount) > 0 : parseFloat(item.spentAmount) > 0))
         .map(item => ({
           name: item.categoryName ? t(`categories.${item.categoryName.toLowerCase()}`, item.categoryName) : t('common.all'),
-          value: parseFloat(item.spentAmount)
+          value: item.expenseAmount !== undefined ? parseFloat(item.expenseAmount) : parseFloat(item.spentAmount)
         }))
     : [];
 
@@ -489,28 +544,34 @@ function ReportsPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
-              <p className="text-sm font-semibold uppercase tracking-wider text-brand-success mb-1">
-                {t('reports.totalIncome')}
-              </p>
-              <h3 className="text-3xl font-bold text-white">
-                {formatCurrency(data.totalIncome)}
-              </h3>
+              <div>
+                <p className="text-base font-normal text-white/90 mb-2">
+                  {t('reports.totalIncome')}
+                </p>
+                <h3 className="text-4xl font-light text-brand-success">
+                  {formatCurrency(data.totalIncome)}
+                </h3>
+              </div>
             </div>
             <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
-              <p className="text-sm font-semibold uppercase tracking-wider text-red-500 mb-1">
-                {t('reports.totalExpense')}
-              </p>
-              <h3 className="text-3xl font-bold text-white">
-                {formatCurrency(data.totalExpense)}
-              </h3>
+              <div>
+                <p className="text-base font-normal text-white/90 mb-2">
+                  {t('reports.totalExpense')}
+                </p>
+                <h3 className="text-4xl font-light text-brand-danger">
+                  {formatCurrency(data.totalExpense)}
+                </h3>
+              </div>
             </div>
             <div className="bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 p-6 rounded-3xl shadow-lg">
-              <p className={`text-sm font-semibold uppercase tracking-wider mb-1 ${netBalance >= 0 ? 'text-blue-500' : 'text-orange-500'}`}>
-                {t('reports.netBalance')}
-              </p>
-              <h3 className="text-3xl font-bold text-white">
-                {formatCurrency(netBalance)}
-              </h3>
+              <div>
+                <p className="text-base font-normal text-white/90 mb-2">
+                  {t('reports.netBalance')}
+                </p>
+                <h3 className={`text-4xl font-light ${netBalance >= 0 ? 'text-brand-info' : 'text-orange-400'}`}>
+                  {formatCurrency(netBalance)}
+                </h3>
+              </div>
             </div>
           </div>
 
@@ -546,17 +607,25 @@ function ReportsPage() {
                       {pieData.map((entry, index) => {
                         const percentage = ((entry.value / data.totalExpense) * 100).toFixed(1);
                         return (
-                          <div key={index} className="flex items-center justify-between p-2 rounded-xl hover:bg-brand-dark/20 transition-colors">
-                            <div className="flex items-center gap-2">
+                          <div 
+                            key={index} 
+                            onClick={() => handleCategoryClick(entry.name)}
+                            title={`Ver transações de ${entry.name} em ${String(month).padStart(2, '0')}/${year}`}
+                            className="group flex items-center justify-between p-2.5 rounded-xl hover:bg-brand-primary/10 border border-transparent hover:border-brand-primary/30 transition-all duration-200 cursor-pointer select-none"
+                          >
+                            <div className="flex items-center gap-2.5">
                               <span
-                                className="w-3 h-3 rounded-full flex-shrink-0"
+                                className="w-3.5 h-3.5 rounded-full flex-shrink-0 group-hover:scale-125 transition-transform duration-200 shadow-[0_0_8px_rgba(138,109,255,0.4)]"
                                 style={{ backgroundColor: COLORS[index % COLORS.length] }}
                               ></span>
-                              <span className="text-sm font-medium text-gray-200">{entry.name}</span>
+                              <span className="text-sm font-medium text-gray-200 group-hover:text-brand-primary transition-colors flex items-center gap-1.5">
+                                {entry.name}
+                                <ExternalLink size={13} className="opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all text-brand-primary" />
+                              </span>
                             </div>
-                            <div className="text-right">
-                              <span className="text-sm font-bold text-white font-mono">{formatCurrency(entry.value)}</span>
-                              <span className="text-xs text-text-secondary ml-2 font-mono">({percentage}%)</span>
+                            <div className="text-right flex items-center gap-1.5">
+                              <span className="text-sm font-bold text-white font-mono group-hover:text-brand-primary transition-colors">{formatCurrency(entry.value)}</span>
+                              <span className="text-xs text-text-secondary font-mono">({percentage}%)</span>
                             </div>
                           </div>
                         );
@@ -631,6 +700,7 @@ function ReportsPage() {
                       const ratio = hasBudget ? (spent / limit) * 100 : 0;
                       const exceeded = hasBudget && spent > limit;
                       const isInvestment = report.categoryName?.toLowerCase() === 'investimentos';
+                      const displayName = report.categoryName ? t(`categories.${report.categoryName.toLowerCase()}`, report.categoryName) : t('common.all');
 
                       // Determine colors and status message
                       let spentColor = isInvestment ? 'text-brand-success' : 'text-red-400';
@@ -665,8 +735,20 @@ function ReportsPage() {
                       }
 
                       return (
-                        <tr key={index} className="hover:bg-brand-card-hover/20 transition-colors">
-                          <td className="py-4 px-4 font-medium">{report.categoryName ? t(`categories.${report.categoryName.toLowerCase()}`, report.categoryName) : t('common.all')}</td>
+                        <tr 
+                          key={index} 
+                          onClick={() => handleCategoryClick(report.categoryName)}
+                          title={`Ver transações de ${displayName} em ${String(month).padStart(2, '0')}/${year}`}
+                          className="border-b border-brand-border/10 text-white hover:bg-brand-primary/10 transition-all duration-150 cursor-pointer group select-none"
+                        >
+                          <td className="py-4 px-4 font-medium">
+                            <div className="flex items-center gap-2 text-gray-200 group-hover:text-brand-primary transition-colors">
+                              <span className="group-hover:underline underline-offset-4 decoration-brand-primary/40 font-semibold">
+                                {displayName}
+                              </span>
+                              <ExternalLink size={13} className="text-text-secondary opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all text-brand-primary" />
+                            </div>
+                          </td>
                           <td className={`py-4 px-4 text-right font-semibold ${spentColor}`}>
                             {formatCurrency(spent)}
                           </td>

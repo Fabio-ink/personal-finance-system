@@ -1,4 +1,4 @@
-    import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export const useTransactionFilters = (initialFilters = {}) => {
     const [filters, setFilters] = useState({
@@ -8,6 +8,16 @@ export const useTransactionFilters = (initialFilters = {}) => {
         categoryId: initialFilters.categoryId || '',
         transactionType: initialFilters.transactionType || ''
     });
+
+    useEffect(() => {
+        setFilters({
+            name: initialFilters.name || '',
+            startDate: initialFilters.startDate || '',
+            endDate: initialFilters.endDate || '',
+            categoryId: initialFilters.categoryId || '',
+            transactionType: initialFilters.transactionType || ''
+        });
+    }, [initialFilters.name, initialFilters.startDate, initialFilters.endDate, initialFilters.categoryId, initialFilters.transactionType]);
 
     const handleChange = useCallback((field, value) => {
         setFilters(prev => ({ ...prev, [field]: value }));

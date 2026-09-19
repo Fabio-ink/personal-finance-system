@@ -45,18 +45,24 @@ public class ReportService {
 
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalExpense = BigDecimal.ZERO;
-        Map<Long, BigDecimal> categoryExpenses = new HashMap<>();
+        Map<Long, BigDecimal> categoryExpensesOnly = new HashMap<>();
+        Map<Long, BigDecimal> categorySpentTotal = new HashMap<>();
 
         for (Transaction t : currentMonthTx) {
             BigDecimal amt = t.getAmount() != null ? t.getAmount() : BigDecimal.ZERO;
             if (t.getTransactionType() == TransactionType.INCOME) {
                 totalIncome = totalIncome.add(amt);
-            } else if (t.getTransactionType() == TransactionType.EXPENSE || (t.getTransactionType() == TransactionType.TRANSFER && t.getCategory() != null)) {
+            } else if (t.getTransactionType() == TransactionType.EXPENSE) {
                 totalExpense = totalExpense.add(amt);
                 if (t.getCategory() != null) {
                     Long catId = t.getCategory().getId();
-                    categoryExpenses.put(catId, categoryExpenses.getOrDefault(catId, BigDecimal.ZERO).add(amt));
+                    categoryExpensesOnly.put(catId, categoryExpensesOnly.getOrDefault(catId, BigDecimal.ZERO).add(amt));
                 }
+            }
+
+            if (t.getCategory() != null && (t.getTransactionType() == TransactionType.EXPENSE || t.getTransactionType() == TransactionType.TRANSFER)) {
+                Long catId = t.getCategory().getId();
+                categorySpentTotal.put(catId, categorySpentTotal.getOrDefault(catId, BigDecimal.ZERO).add(amt));
             }
         }
 
@@ -72,7 +78,8 @@ public class ReportService {
         List<ReportResponseDTO.CategoryReportDTO> categoryReports = new ArrayList<>();
 
         for (Category cat : allCategories) {
-            BigDecimal spent = categoryExpenses.getOrDefault(cat.getId(), BigDecimal.ZERO);
+            BigDecimal spent = categorySpentTotal.getOrDefault(cat.getId(), BigDecimal.ZERO);
+            BigDecimal expenseOnly = categoryExpensesOnly.getOrDefault(cat.getId(), BigDecimal.ZERO);
             BigDecimal planned = categoryPlans.getOrDefault(cat.getId(), BigDecimal.ZERO);
 
             if (spent.compareTo(BigDecimal.ZERO) == 0 && planned.compareTo(BigDecimal.ZERO) == 0) {
@@ -105,7 +112,8 @@ public class ReportService {
                 cat.getName(),
                 spent,
                 planned,
-                avg
+                avg,
+                expenseOnly
             ));
         }
 
@@ -125,7 +133,7 @@ public class ReportService {
                 BigDecimal amt = t.getAmount() != null ? t.getAmount() : BigDecimal.ZERO;
                 if (t.getTransactionType() == TransactionType.INCOME) {
                     inc = inc.add(amt);
-                } else if (t.getTransactionType() == TransactionType.EXPENSE || (t.getTransactionType() == TransactionType.TRANSFER && t.getCategory() != null)) {
+                } else if (t.getTransactionType() == TransactionType.EXPENSE) {
                     exp = exp.add(amt);
                 }
             }

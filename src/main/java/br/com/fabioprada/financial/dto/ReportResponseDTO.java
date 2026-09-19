@@ -23,6 +23,7 @@ public class ReportResponseDTO {
         private BigDecimal spentAmount;
         private BigDecimal plannedAmount;
         private BigDecimal averageSpentPastMonths;
+        private BigDecimal expenseAmount;
     }
 
     @Data
