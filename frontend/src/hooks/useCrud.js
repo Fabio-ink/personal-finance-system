@@ -173,7 +173,7 @@ export function useCrud(endpoint) {
       }
       setError(null);
     } catch (err) {
-      console.error('Error fetching endpoint:', endpoint, err);
+      console.error('Error fetching endpoint %s:', endpoint, err);
       setError(`Failed to fetch ${endpoint}. Using offline data.`);
       
       if (endpoint === '/transactions') {
@@ -260,7 +260,7 @@ export function useCrud(endpoint) {
         return null;
       }
     } catch (err) {
-      console.error('Error adding item to endpoint:', endpoint, err);
+      console.error('Error adding item to endpoint %s:', endpoint, err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to add item.';
       setError(errorMessage);
       return errorMessage;
@@ -327,7 +327,7 @@ export function useCrud(endpoint) {
         return null;
       }
     } catch (err) {
-      console.error('Error updating item in endpoint:', endpoint, err);
+      console.error('Error updating item in endpoint %s:', endpoint, err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to update item.';
       setError(errorMessage);
       return errorMessage;
@@ -382,7 +382,7 @@ export function useCrud(endpoint) {
           return null;
         }
       } catch (err) {
-        console.error('Error deleting item from endpoint:', endpoint, err);
+        console.error('Error deleting item from endpoint %s:', endpoint, err);
         const errorMessage = err.response?.data?.message || err.message || 'Failed to delete item.';
         setError(errorMessage);
         return errorMessage;
@@ -441,7 +441,7 @@ export function useCrud(endpoint) {
           return null;
         }
       } catch (err) {
-        console.error('Error deleting items from endpoint:', endpoint, err);
+        console.error('Error deleting items from endpoint %s:', endpoint, err);
         return err;
       }
     }
