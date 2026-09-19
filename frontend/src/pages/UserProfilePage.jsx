@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { PageTitle, Card, Input, Button } from '../components/ui';
+import { PageTitle, Card, Input, Button, Modal } from '../components/ui';
 import api from '../services/api';
 import { User, Mail, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -154,71 +154,77 @@ const UserProfilePage = () => {
       </div>
 
       {/* Password Change Modal */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-brand-card border border-brand-border p-6 rounded-xl w-full max-w-md shadow-2xl">
-                <h3 className="text-xl font-bold text-white mb-4">{t('profile.changePassword')}</h3>
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm text-gray-300">{t('profile.currentPassword')}</label>
-                        <Input 
-                            type="password" 
-                            value={currentPassword} 
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm text-gray-300">{t('profile.newPassword')}</label>
-                        <Input 
-                            type="password" 
-                            value={newPassword} 
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm text-gray-300">{t('profile.confirmNewPassword')}</label>
-                        <Input 
-                            type="password" 
-                            value={confirmPassword} 
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    {passwordError && (
-                        <p className="text-brand-red text-sm">{passwordError}</p>
-                    )}
-
-                    <div className="flex gap-3 pt-2">
-                        <Button 
-                            type="button" 
-                            variant="outline" 
-                            className="flex-1"
-                            onClick={() => {
-                                setShowPasswordModal(false);
-                                setPasswordError('');
-                                setCurrentPassword('');
-                                setNewPassword('');
-                                setConfirmPassword('');
-                            }}
-                        >
-                            {t('profile.cancel')}
-                        </Button>
-                        <Button 
-                            type="submit" 
-                            variant="primary" 
-                            className="flex-1"
-                            disabled={loading}
-                        >
-                            {loading ? t('profile.changing') : t('profile.changePassword')}
-                        </Button>
-                    </div>
-                </form>
+      <Modal 
+        isOpen={showPasswordModal} 
+        onCancel={() => {
+          setShowPasswordModal(false);
+          setPasswordError('');
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+        }}
+        maxWidth="max-w-md"
+      >
+        <h3 className="text-xl font-bold text-white mb-4">{t('profile.changePassword')}</h3>
+        <form onSubmit={handleChangePassword} className="space-y-4">
+            <div className="space-y-2">
+                <label className="text-sm text-gray-300">{t('profile.currentPassword')}</label>
+                <Input 
+                    type="password" 
+                    value={currentPassword} 
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                />
             </div>
-        </div>
-      )}
+            <div className="space-y-2">
+                <label className="text-sm text-gray-300">{t('profile.newPassword')}</label>
+                <Input 
+                    type="password" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-sm text-gray-300">{t('profile.confirmNewPassword')}</label>
+                <Input 
+                    type="password" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                />
+            </div>
+
+            {passwordError && (
+                <p className="text-brand-red text-sm">{passwordError}</p>
+            )}
+
+            <div className="flex gap-3 pt-2">
+                <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                        setShowPasswordModal(false);
+                        setPasswordError('');
+                        setCurrentPassword('');
+                        setNewPassword('');
+                        setConfirmPassword('');
+                    }}
+                >
+                    {t('profile.cancel')}
+                </Button>
+                <Button 
+                    type="submit" 
+                    variant="primary" 
+                    className="flex-1"
+                    disabled={loading}
+                >
+                    {loading ? t('profile.changing') : t('profile.changePassword')}
+                </Button>
+            </div>
+        </form>
+      </Modal>
     </div>
   );
 };
