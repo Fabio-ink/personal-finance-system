@@ -142,7 +142,7 @@ const DatePicker = ({ label, value, onChange, className = '', ...props }) => {
   };
 
   return (
-    <div className={twMerge("relative", className)} ref={containerRef}>
+    <div className={twMerge("relative", isOpen && "z-30", className)} ref={containerRef}>
        {label && (
         <label className="block text-sm font-medium text-text-secondary mb-2 ml-1">
           {label}

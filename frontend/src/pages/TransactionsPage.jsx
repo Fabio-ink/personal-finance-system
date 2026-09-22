@@ -206,7 +206,7 @@ function TransactionsPage() {
                     )}
 
                     {/* Import Dropdown with all import options */}
-                    <div className="relative" ref={importDropdownRef}>
+                    <div className="relative z-30" ref={importDropdownRef}>
                         <button
                             type="button"
                             onClick={() => setIsImportDropdownOpen(!isImportDropdownOpen)}

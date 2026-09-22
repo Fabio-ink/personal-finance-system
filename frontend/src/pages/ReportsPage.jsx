@@ -503,7 +503,7 @@ function ReportsPage() {
 
   return (
     <div className="container mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 relative z-30">
         <PageTitle>{t('reports.title')}</PageTitle>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <Select

@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 const TransactionFilters = ({ filters, onChange, onClear, categories }) => {
     const { t } = useTranslation();
     return (
-        <div className="mb-6 p-6 bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 rounded-3xl shadow-lg">
+        <div className="relative z-30 mb-6 p-6 bg-brand-dark/40 backdrop-blur-md border border-brand-border/20 rounded-3xl shadow-lg">
             <div className="flex justify-between items-center mb-5">
                 <h3 className="text-base font-bold text-white tracking-wide">{t('transactions.filterTitle')}</h3>
                 <button 
