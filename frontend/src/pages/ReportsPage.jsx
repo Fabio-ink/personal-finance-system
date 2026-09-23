@@ -451,12 +451,15 @@ function ReportsPage() {
 
   const pieData = data?.categoryReports
     ? data.categoryReports
-        .filter(item => (item.expenseAmount !== undefined ? parseFloat(item.expenseAmount) > 0 : parseFloat(item.spentAmount) > 0))
+        .filter(item => parseFloat(item.spentAmount) > 0)
         .map(item => ({
+          categoryName: item.categoryName,
           name: item.categoryName ? t(`categories.${item.categoryName.toLowerCase()}`, item.categoryName) : t('common.all'),
-          value: item.expenseAmount !== undefined ? parseFloat(item.expenseAmount) : parseFloat(item.spentAmount)
+          value: parseFloat(item.spentAmount)
         }))
     : [];
+
+  const pieTotal = pieData.reduce((sum, item) => sum + item.value, 0);
 
   const barData = data?.monthlyTrends
     ? data.monthlyTrends.map(item => {
@@ -605,11 +608,11 @@ function ReportsPage() {
                     </div>
                     <div className="w-full md:w-1/2 space-y-2 max-h-64 overflow-y-auto pr-2">
                       {pieData.map((entry, index) => {
-                        const percentage = ((entry.value / data.totalExpense) * 100).toFixed(1);
+                        const percentage = pieTotal > 0 ? ((entry.value / pieTotal) * 100).toFixed(1) : '0.0';
                         return (
                           <div 
                             key={index} 
-                            onClick={() => handleCategoryClick(entry.name)}
+                            onClick={() => handleCategoryClick(entry.categoryName || entry.name)}
                             title={`Ver transações de ${entry.name} em ${String(month).padStart(2, '0')}/${year}`}
                             className="group flex items-center justify-between p-2.5 rounded-xl hover:bg-brand-primary/10 border border-transparent hover:border-brand-primary/30 transition-all duration-200 cursor-pointer select-none"
                           >
