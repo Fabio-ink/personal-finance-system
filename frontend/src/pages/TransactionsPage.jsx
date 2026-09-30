@@ -189,7 +189,7 @@ function TransactionsPage() {
 
     return (
         <div className="container mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div className="relative z-40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div className="flex items-center space-x-4">
                     <PageTitle>{t('transactions.title')}</PageTitle>
                 </div>
@@ -205,8 +205,7 @@ function TransactionsPage() {
                         </button>
                     )}
 
-                    {/* Import Dropdown with all import options */}
-                    <div className="relative z-30" ref={importDropdownRef}>
+                    <div className="relative z-50" ref={importDropdownRef}>
                         <button
                             type="button"
                             onClick={() => setIsImportDropdownOpen(!isImportDropdownOpen)}
