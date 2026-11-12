@@ -9,7 +9,9 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "accounts", indexes = {
+        @Index(name = "idx_accounts_user_id", columnList = "user_id")
+})
 @Getter
 @Setter
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 @Entity
 @Table(name = "transactions", indexes = {
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
         @Index(name = "idx_transaction_in_account", columnList = "in_account_id"),
         @Index(name = "idx_transaction_out_account", columnList = "out_account_id")
 })
-@CrossOrigin(origins = "http://localhost:5173") // Permite acesso do nosso frontend
 @Data
 public class Transaction {
 
@@ -25,7 +23,7 @@ public class Transaction {
     private String name;
 
     @Column(nullable = false)
-    private BigDecimal amount; // Alterado de 'value' para 'amount'
+    private BigDecimal amount;
 
     @Column(nullable = false)
     private LocalDate creationDate;
