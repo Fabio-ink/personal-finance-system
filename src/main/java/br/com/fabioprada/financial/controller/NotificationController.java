@@ -42,7 +42,9 @@ public class NotificationController {
             token = authorization.substring(7);
         }
 
-        if (token == null || !token.equals(cronToken)) {
+        if (token == null || cronToken == null || !java.security.MessageDigest.isEqual(
+                token.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                cronToken.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token.");
         }
 

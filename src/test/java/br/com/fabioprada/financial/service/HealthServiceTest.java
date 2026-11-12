@@ -54,6 +54,6 @@ public class HealthServiceTest {
 
         Assertions.assertEquals("DOWN", result.get("status"));
         Assertions.assertEquals("DOWN", result.get("database"));
-        Assertions.assertEquals("Connection refused", result.get("error"));
+        Assertions.assertEquals("Database unavailable", result.get("error"));
     }
 }

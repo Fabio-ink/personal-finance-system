@@ -54,20 +54,20 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> request) {
         String email = request.get("email");
-        try {
-            UserDetails userDetails = userService.loadUserByUsername(email);
-            br.com.fabioprada.financial.model.User user = (br.com.fabioprada.financial.model.User) userDetails;
+        if (email != null && !email.trim().isEmpty()) {
+            try {
+                UserDetails userDetails = userService.loadUserByUsername(email);
+                br.com.fabioprada.financial.model.User user = (br.com.fabioprada.financial.model.User) userDetails;
 
-            String token = java.util.UUID.randomUUID().toString();
-            userService.createPasswordResetTokenForUser(user, token);
+                String token = java.util.UUID.randomUUID().toString();
+                userService.createPasswordResetTokenForUser(user, token);
 
-            emailService.sendSimpleMessage(email, "Password Recovery - SyncWallet",
-                    "Your recovery code is: " + token);
-
-            return ResponseEntity.ok("Recovery code sent to your email.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error processing request: " + e.getMessage());
+                emailService.sendSimpleMessage(email, "Password Recovery - SyncWallet",
+                        "Your recovery code is: " + token);
+            } catch (Exception ignored) {
+            }
         }
+        return ResponseEntity.ok("If the email is registered, a recovery code has been sent.");
     }
 
     @PostMapping("/reset-password")
@@ -75,13 +75,14 @@ public class AuthController {
         String token = request.get("token");
         String newPassword = request.get("newPassword");
 
-        java.util.Optional<br.com.fabioprada.financial.model.User> user = userService
-                .getUserByPasswordResetToken(token);
+        if (token == null || newPassword == null || newPassword.trim().length() < 6) {
+            return ResponseEntity.badRequest().body("Valid token and password are required.");
+        }
 
-        if (user.isPresent()) {
-            userService.updatePassword(user.get(), newPassword);
+        try {
+            userService.resetPasswordWithToken(token, newPassword);
             return ResponseEntity.ok("Password changed successfully.");
-        } else {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Invalid or expired token.");
         }
     }

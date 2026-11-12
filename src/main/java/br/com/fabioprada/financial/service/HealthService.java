@@ -32,7 +32,7 @@ public class HealthService {
         } catch (Exception e) {
             status.put("status", "DOWN");
             status.put("database", "DOWN");
-            status.put("error", e.getMessage());
+            status.put("error", "Database unavailable");
         }
 
         return status;

@@ -85,8 +85,20 @@ public class UserService implements UserDetailsService {
 
         myToken.setUser(user);
         myToken.setToken(token);
-        myToken.setExpiryDate(java.time.LocalDateTime.now().plusHours(24));
+        myToken.setExpiryDate(java.time.LocalDateTime.now().plusMinutes(30));
         passwordResetTokenRepository.save(myToken);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void resetPasswordWithToken(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .filter(t -> !t.isExpired())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired token"));
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        passwordResetTokenRepository.delete(resetToken);
     }
 
     public void updatePassword(User user, String newPassword) {
