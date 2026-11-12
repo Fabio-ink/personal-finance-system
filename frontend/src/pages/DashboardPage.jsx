@@ -157,12 +157,12 @@ function DashboardPage() {
 
       const [summaryRes, transRes, accountsRes, categoriesRes] = await Promise.all([
         api.get('/dashboard/summary'), 
-        api.get('/transactions?size=100'),     
+        api.get('/dashboard/transactions'),     
         api.get('/accounts'),         
         api.get('/categories')        
       ]);
 
-      const serverTransactions = transRes.data.content || [];
+      const serverTransactions = Array.isArray(transRes.data) ? transRes.data : (transRes.data.content || []);
       const { saveLocalTransaction } = await import('../services/db');
       for (const item of serverTransactions) {
         await saveLocalTransaction({ ...item, synced: true });

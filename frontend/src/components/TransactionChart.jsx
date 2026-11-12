@@ -10,28 +10,28 @@ const TransactionChart = ({ transactions }) => {
         if (!transactions || transactions.length === 0) return [];
 
         const now = new Date();
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
         let startDate = new Date();
 
-        // Filter transactions based on time range
         switch (timeRange) {
-            case '1S': // 1 Week
+            case '1S':
                 startDate.setDate(now.getDate() - 7);
                 break;
-            case '1M': // 1 Month
+            case '1M':
                 startDate.setMonth(now.getMonth() - 1);
                 break;
-            case '1A': // 1 Year
+            case '1A':
                 startDate.setFullYear(now.getFullYear() - 1);
                 break;
             case 'Max':
-                startDate = new Date(0); // Beginning of time
+                startDate = new Date(0);
                 break;
             default:
                 startDate.setMonth(now.getMonth() - 1);
         }
 
         const filteredTransactions = transactions.filter(t => {
-            // Parse YYYY-MM-DD as local time
             let tDate;
             if (typeof t.creationDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.creationDate)) {
                  const [year, month, day] = t.creationDate.split('-').map(Number);
@@ -39,7 +39,7 @@ const TransactionChart = ({ transactions }) => {
             } else {
                  tDate = new Date(t.creationDate);
             }
-            return tDate >= startDate && tDate <= now;
+            return tDate >= startDate && (timeRange === 'Max' || tDate <= endOfToday);
         });
 
         // 1. Group transactions by date
