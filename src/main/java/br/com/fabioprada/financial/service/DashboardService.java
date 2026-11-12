@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
@@ -43,13 +44,17 @@ public class DashboardService {
                 YearMonth previousMonth = currentMonth.minusMonths(1);
                 YearMonth nextMonth = currentMonth.plusMonths(1);
 
-                MonthSummaryDTO previousMonth2Summary = createSummaryForMonth(previousMonth2,
-                        Objects.requireNonNull(userId));
-                MonthSummaryDTO previousMonthSummary = createSummaryForMonth(previousMonth,
-                        Objects.requireNonNull(userId));
-                MonthSummaryDTO currentMonthSummary = createSummaryForMonth(currentMonth,
-                        Objects.requireNonNull(userId));
-                MonthSummaryDTO nextMonthSummary = createSummaryForMonth(nextMonth, Objects.requireNonNull(userId));
+                LocalDate startDate = previousMonth2.atDay(1);
+                LocalDate endDate = nextMonth.atEndOfMonth();
+
+                List<Transaction> transactions = transactionRepository.findByDateRangeAndUserId(startDate, endDate, userId);
+                Map<YearMonth, List<Transaction>> txByMonth = transactions.stream()
+                        .collect(Collectors.groupingBy(t -> YearMonth.from(t.getCreationDate())));
+
+                MonthSummaryDTO previousMonth2Summary = createSummaryForMonth(previousMonth2, userId, txByMonth.getOrDefault(previousMonth2, Collections.emptyList()));
+                MonthSummaryDTO previousMonthSummary = createSummaryForMonth(previousMonth, userId, txByMonth.getOrDefault(previousMonth, Collections.emptyList()));
+                MonthSummaryDTO currentMonthSummary = createSummaryForMonth(currentMonth, userId, txByMonth.getOrDefault(currentMonth, Collections.emptyList()));
+                MonthSummaryDTO nextMonthSummary = createSummaryForMonth(nextMonth, userId, txByMonth.getOrDefault(nextMonth, Collections.emptyList()));
 
                 return Map.of(
                         "previous2", previousMonth2Summary,
@@ -73,9 +78,7 @@ public class DashboardService {
         return Collections.emptyList();
     }
 
-    private MonthSummaryDTO createSummaryForMonth(YearMonth month, Long userId) {
-        List<Transaction> transactions = transactionRepository.findByYearAndMonth(month.getYear(),
-                month.getMonthValue(), userId);
+    private MonthSummaryDTO createSummaryForMonth(YearMonth month, Long userId, List<Transaction> transactions) {
         List<MonthlyPlanning> plannings = monthlyPlanningRepository.findByYearAndMonthAndUserId(month.getYear(),
                 month.getMonthValue(), userId);
 

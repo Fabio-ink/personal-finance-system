@@ -9,4 +9,4 @@ RUN adduser -D appuser && chown -R appuser:appuser /app
 USER appuser
 COPY --from=build --chown=appuser:appuser /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms128m", "-Xmx256m", "-XX:+UseSerialGC", "-XX:MaxMetaspaceSize=128m", "-jar", "app.jar"]

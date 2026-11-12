@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
 
-        @Query("SELECT t FROM Transaction t WHERE t.creationDate >= :startDate AND t.creationDate <= :endDate AND t.user.id = :userId")
+        @Query("SELECT t FROM Transaction t LEFT JOIN FETCH t.category LEFT JOIN FETCH t.outAccount LEFT JOIN FETCH t.inAccount WHERE t.creationDate >= :startDate AND t.creationDate <= :endDate AND t.user.id = :userId")
         List<Transaction> findByDateRangeAndUserId(@Param("startDate") java.time.LocalDate startDate, @Param("endDate") java.time.LocalDate endDate, @Param("userId") Long userId);
 
         default List<Transaction> findByYearAndMonth(int year, int month, Long userId) {
@@ -33,9 +33,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
                 return sumAmountByCategoryIdAndDateRangeAndUserId(categoryId, startDate, endDate, userId);
         }
 
-        List<Transaction> findAllByUserId(@NonNull Long userId);
+        @Query("SELECT t FROM Transaction t LEFT JOIN FETCH t.category LEFT JOIN FETCH t.outAccount LEFT JOIN FETCH t.inAccount WHERE t.user.id = :userId")
+        List<Transaction> findAllByUserId(@NonNull @Param("userId") Long userId);
 
-        Optional<Transaction> findByIdAndUserId(@NonNull Long id, @NonNull Long userId);
+        @Query("SELECT t FROM Transaction t LEFT JOIN FETCH t.category LEFT JOIN FETCH t.outAccount LEFT JOIN FETCH t.inAccount WHERE t.id = :id AND t.user.id = :userId")
+        Optional<Transaction> findByIdAndUserId(@NonNull @Param("id") Long id, @NonNull @Param("userId") Long userId);
 
         void deleteByIdAndUserId(@NonNull Long id, @NonNull Long userId);
 

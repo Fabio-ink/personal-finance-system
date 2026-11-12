@@ -14,10 +14,13 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
@@ -41,7 +44,15 @@ public class ReportService {
         User user = userContextService.getCurrentUserOrThrow();
         Long userId = user.getId();
 
-        List<Transaction> currentMonthTx = transactionRepository.findByYearAndMonth(year, month, userId);
+        LocalDate baseDate = LocalDate.of(year, month, 1);
+        LocalDate earliestDate = baseDate.minusMonths(5);
+        LocalDate latestDate = baseDate.withDayOfMonth(baseDate.lengthOfMonth());
+
+        List<Transaction> allRangeTx = transactionRepository.findByDateRangeAndUserId(earliestDate, latestDate, userId);
+        Map<YearMonth, List<Transaction>> txByMonth = allRangeTx.stream()
+                .collect(Collectors.groupingBy(t -> YearMonth.from(t.getCreationDate())));
+
+        List<Transaction> currentMonthTx = txByMonth.getOrDefault(YearMonth.of(year, month), Collections.emptyList());
 
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalExpense = BigDecimal.ZERO;
@@ -92,7 +103,7 @@ public class ReportService {
 
             for (int i = 1; i <= 3; i++) {
                 LocalDate pastRef = currentRef.minusMonths(i);
-                List<Transaction> pastTx = transactionRepository.findByYearAndMonth(pastRef.getYear(), pastRef.getMonthValue(), userId);
+                List<Transaction> pastTx = txByMonth.getOrDefault(YearMonth.from(pastRef), Collections.emptyList());
                 BigDecimal spentPastMonth = BigDecimal.ZERO;
                 for (Transaction t : pastTx) {
                     if (t.getCategory() != null && t.getCategory().getId().equals(cat.getId()) &&
@@ -118,14 +129,13 @@ public class ReportService {
         }
 
         List<ReportResponseDTO.MonthlyTrendDTO> monthlyTrends = new ArrayList<>();
-        LocalDate baseDate = LocalDate.of(year, month, 1);
 
         for (int i = 5; i >= 0; i--) {
             LocalDate targetDate = baseDate.minusMonths(i);
             int y = targetDate.getYear();
             int m = targetDate.getMonthValue();
 
-            List<Transaction> mTx = transactionRepository.findByYearAndMonth(y, m, userId);
+            List<Transaction> mTx = txByMonth.getOrDefault(YearMonth.of(y, m), Collections.emptyList());
             BigDecimal inc = BigDecimal.ZERO;
             BigDecimal exp = BigDecimal.ZERO;
 

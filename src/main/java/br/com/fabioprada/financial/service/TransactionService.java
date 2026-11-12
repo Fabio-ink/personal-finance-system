@@ -66,6 +66,12 @@ public class TransactionService {
     private Specification<Transaction> createSpecification(Long userId, String name, LocalDate startDate,
             LocalDate endDate, Long categoryId, String transactionType) {
         return (Root<Transaction> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+            if (query != null && query.getResultType() != Long.class && query.getResultType() != long.class) {
+                root.fetch("category", jakarta.persistence.criteria.JoinType.LEFT);
+                root.fetch("outAccount", jakarta.persistence.criteria.JoinType.LEFT);
+                root.fetch("inAccount", jakarta.persistence.criteria.JoinType.LEFT);
+                query.distinct(true);
+            }
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("user").get("id"), userId));
             if (name != null && !name.isEmpty()) {
@@ -85,7 +91,6 @@ public class TransactionService {
                     predicates.add(cb.equal(root.get("transactionType"),
                             TransactionType.valueOf(transactionType)));
                 } catch (IllegalArgumentException e) {
-                    // Log invalid type if needed
                 }
             }
             return cb.and(predicates.toArray(new Predicate[0]));
