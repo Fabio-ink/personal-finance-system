@@ -1,0 +1,18 @@
+name: Wake Up Backend
+
+on:
+  schedule:
+    - cron: '50 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  wake-up:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" \
+            --max-time 180 \
+            --retry 3 \
+            --retry-delay 10 \
+            https://personal-finance-system.onrender.com/actuator/health
